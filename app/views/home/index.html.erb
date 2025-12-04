@@ -1,0 +1,152 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  body { 
+    font-family: 'Segoe UI', sans-serif; 
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 20px;
+  }
+  
+  .login-container {
+    background: white;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+  }
+  
+  .login-title {
+    text-align: center;
+    color: #333;
+    margin-bottom: 30px;
+    font-size: 24px;
+  }
+
+  .home-logo { display:block; margin: 0 auto 12px; height:48px; }
+  
+  .login-form .field {
+    margin-bottom: 20px;
+  }
+  
+  .login-form label {
+    display: block;
+    margin-bottom: 5px;
+    color: #555;
+  }
+  
+  .login-form input[type="email"],
+  .login-form input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+  }
+  
+  .login-form .actions {
+    text-align: center;
+  }
+  
+  .login-form input[type="submit"] {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    width: 100%;
+  }
+  
+  .login-form input[type="submit"]:hover {
+    background: #5a6fd8;
+  }
+  
+  .alert {
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+  }
+  
+  .alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+  
+  .alert-danger {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+  }
+  
+  .demo-accounts {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 5px;
+    font-size: 14px;
+    text-align: center;
+  }
+</style>
+
+<div class="login-container">
+  <div class="login-title">
+    <%= image_tag "Logo-VNU-IS-2.jpg", alt: "IS Logo", class: "home-logo" %>
+        HỆ THỐNG ĐĂNG KÝ MÔN HỌC
+  </div>
+  
+  <% if notice %>
+    <div class="alert alert-success"><%= notice %></div>
+  <% end %>
+  
+  <% if alert %>
+    <div class="alert alert-danger"><%= alert %></div>
+  <% end %>
+  
+  <% if user_signed_in? %>
+    <div style="text-align: center; padding: 20px;">
+      <p>Xin chào, <strong><%= current_user.email %></strong>!</p>
+      <p>Vai trò: <strong><%= current_user.admin? ? "Quản trị viên" : "Sinh viên" %></strong></p>
+      
+      <% if current_user.admin? %>
+        <%= link_to "Vào trang Admin", admin_root_path, style: "display: inline-block; background: #667eea; color: white; padding: 12px 30px; border-radius: 5px; text-decoration: none; margin: 10px; font-size: 16px;" %>
+      <% else %>
+        <%= link_to "Vào trang Sinh viên", student_dashboard_path, style: "display: inline-block; background: #667eea; color: white; padding: 12px 30px; border-radius: 5px; text-decoration: none; margin: 10px; font-size: 16px;" %>
+      <% end %>
+      
+      <div style="margin-top: 20px;">
+        <%= button_to "Đăng xuất", destroy_user_session_path, method: :delete, style: "background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%;" %>
+      </div>
+    </div>
+  <% else %>
+    <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: 'login-form' }) do |f| %>
+      <div class="field">
+        <%= f.label :email %>
+        <%= f.email_field :email, autofocus: true, autocomplete: "email" %>
+      </div>
+
+      <div class="field">
+        <%= f.label :password %>
+        <%= f.password_field :password, autocomplete: "current-password" %>
+      </div>
+
+      <% if devise_mapping.rememberable? %>
+        <div class="field">
+          <%= f.check_box :remember_me %>
+          <%= f.label :remember_me %>
+        </div>
+      <% end %>
+
+      <div class="actions">
+        <%= f.submit "ĐĂNG NHẬP" %>
+      </div>
+    <% end %>
+    
+      <% end %>
+</div>

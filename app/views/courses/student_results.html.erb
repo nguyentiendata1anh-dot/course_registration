@@ -1,0 +1,297 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background-color: #f4f6f9; display: flex; height: 100vh; overflow: hidden; }
+  .sidebar { width: 250px; background: #fff; border-right: 1px solid #ddd; display: flex; flex-direction: column; }
+  .logo-area { padding: 15px; text-align: center; border-bottom: 1px solid #eee; } .logo-area img { max-width: 180px; }
+  .menu { list-style: none; padding: 0; margin-top: 10px; }
+  .menu-link { display: flex; align-items: center; padding: 12px 20px; text-decoration: none; color: #555; font-weight: 500; border-bottom: 1px solid #f9f9f9; }
+  .menu-link:hover { color: #0056b3; background: #f0f8ff; }
+  .menu-link.active { background: #e8f4fd; color: #0056b3; font-weight: bold; border-left: 4px solid #0056b3; }
+  .menu-icon { width: 25px; color: #777; } .menu-link.active .menu-icon { color: #0056b3; }
+  .main-content { flex: 1; padding: 20px; overflow-y: auto; }
+
+  /* Header + actions */
+  .results-header { display: flex; align-items: center; gap: 10px; background:#fff; padding: 14px; border:1px solid #e6ecf1; border-radius: 8px; margin-bottom: 16px; }
+  .results-title { font-size: 18px; font-weight: 700; color: #334; margin-right: auto; }
+  .btn { background: #fff; border: 1px solid #d4dce6; color: #334; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; }
+  .btn:hover { background: #f6f9ff; border-color: #a8c8ff; }
+
+  /* Summary cards */
+  .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .card { background:#fff; border:1px solid #e6ecf1; border-radius:8px; padding: 14px; }
+  .card h4 { margin: 0 0 6px; font-size: 13px; color:#667; font-weight:600; }
+  .card .value { font-size: 22px; font-weight: 800; color:#223; }
+  .muted { color:#99a; font-size: 12px; }
+
+  /* Table */
+  .table-wrapper { overflow-x: auto; background: white; border-radius: 8px; border:1px solid #e6ecf1; }
+  table.results-table { width: 100%; border-collapse: collapse; }
+  .results-table th { background: #007bff; color: white; padding: 12px; text-align: center; font-weight: 600; font-size: 12px; position: sticky; top: 0; z-index: 1; }
+  .results-table td { padding: 10px 12px; border-bottom: 1px solid #eee; text-align: center; font-size: 12px; }
+  .results-table tbody tr:nth-child(odd) { background: #fafcfe; }
+  .results-table tbody tr:hover { background: #f5f9ff; }
+  .left { text-align: left; }
+
+  /* Badges */
+  .grade-badge { display: inline-block; min-width:32px; padding: 2px 8px; border-radius: 999px; font-weight: 800; color: #fff; }
+  .grade-A { background:#28a745; }
+  .grade-B { background:#17a2b8; }
+  .grade-C { background:#ffc107; color:#222; }
+  .grade-D { background:#fd7e14; }
+  .grade-F { background:#dc3545; }
+  .status-ok { color:#28a745; font-weight:700; }
+  .status-fail { color:#dc3545; font-weight:700; }
+  .status-pending { color:#99a; font-weight:700; }
+
+  /* Progress */
+  .progress { height: 8px; background:#eef3fb; border-radius: 999px; overflow: hidden; }
+  .bar { height: 100%; border-radius: 999px; }
+  .bar-blue { background:#4c8bf5; }
+  .bar-cyan { background:#34b3c7; }
+  .bar-violet { background:#7f67ff; }
+
+  /* Print */
+  @media print {
+    .sidebar, .results-header { display: none !important; }
+    body { overflow: visible; height: auto; }
+  }
+</style>
+
+<div class="sidebar">
+  <div class="logo-area"><%= image_tag "Logo-VNU-IS-2.jpg", alt: "IS Logo", loading: "lazy" %></div>
+  <ul class="menu">
+    <li><a href="<%= student_dashboard_path %>" class="menu-link"><i class="fas fa-home menu-icon"></i> TRANG CHỦ</a></li>
+    <li><a href="<%= student_profile_path %>" class="menu-link"><i class="fas fa-info-circle menu-icon"></i> THÔNG TIN CHUNG</a></li>
+    <li><a href="<%= student_courses_path %>" class="menu-link"><i class="fas fa-edit menu-icon"></i> ĐĂNG KÝ HỌC PHẦN</a></li>
+    <li><a href="<%= student_results_path %>" class="menu-link active"><i class="fas fa-book menu-icon"></i> KẾT QUẢ HỌC TẬP</a></li>
+  </ul>
+</div>
+
+<div class="main-content">
+  <div class="results-header">
+    <div class="results-title">Kết quả học tập</div>
+    <button class="btn" onclick="window.print()"><i class="fas fa-print"></i> In/Export</button>
+  </div>
+
+  <% @enrollments = current_user.enrollments.includes(:course) %>
+  <% if @enrollments.present? %>
+    <%# GPA and credits summary (10-point, weighted by credits) %>
+    <% earned_points10 = 0.0; earned_credits = 0; failed_credits = 0; counted_credits = 0 %>
+    <% @enrollments.each do |e| %>
+      <% if e.total_score.present? && e.course %>
+        <% credits = e.course.credits.to_i %>
+        <% counted_credits += credits %>
+        <% earned_points10 += e.total_score.to_f * credits %>
+        <% if e.passed? %>
+          <% earned_credits += e.completed_credits.to_i %>
+        <% else %>
+          <% failed_credits += credits %>
+        <% end %>
+      <% end %>
+    <% end %>
+    <% gpa = counted_credits > 0 ? (earned_points10 / counted_credits) : 0.0 %>
+
+    <div class="summary">
+      <div class="card">
+        <h4>GPA (10.0)</h4>
+        <div class="value"><%= number_with_precision(gpa, precision: 2) %></div>
+        <div class="muted">Tổng tín chỉ tính GPA: <%= counted_credits %></div>
+      </div>
+      <div class="card">
+        <h4>Tín chỉ tích lũy</h4>
+        <div class="value"><%= earned_credits %></div>
+        <div class="muted">Đã hoàn thành</div>
+      </div>
+      <div class="card">
+        <h4>Tín chỉ trượt</h4>
+        <div class="value" style="color:#dc3545;"><%= failed_credits %></div>
+        <div class="muted">Cần học lại</div>
+      </div>
+    </div>
+
+    <%# Persistent failed attempts moved to top for visibility %>
+    <% failed_attempts = @enrollments.select { |e| e.total_score.present? && e.total_score < 4.0 } %>
+    <% failed_credits_total = failed_attempts.sum { |e| e.course&.credits.to_i } %>
+
+    <div class="summary" style="margin-top: 0;">
+      <div class="card">
+        <h4>Đã từng trượt (tích lũy)</h4>
+        <div class="value" style="color:#dc3545;"><%= failed_credits_total %> tín chỉ</div>
+        <div class="muted">Tổng tín đã từng trượt, không giảm khi học lại</div>
+      </div>
+    </div>
+
+    <div class="table-wrapper" style="margin-top: 8px;">
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>STT</th>
+            <th>Mã HP</th>
+            <th class="left">Tên học phần</th>
+            <th>TC</th>
+            <th>Tổng điểm</th>
+            <th>Chữ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if failed_attempts.any? %>
+            <% failed_attempts.each_with_index do |e, idx| %>
+              <% c = e.course %>
+              <% total = e.total_score %>
+              <% letter = if total.nil?
+  nil
+elsif total >= 9.0
+  'A+'
+elsif total >= 8.5
+  'A'
+elsif total >= 8.0
+  'B+'
+elsif total >= 7.0
+  'B'
+elsif total >= 6.5
+  'C+'
+elsif total >= 5.5
+  'C'
+elsif total >= 5.0
+  'D+'
+elsif total >= 4.0
+  'D'
+else
+  'F'
+end %>
+              <tr>
+                <td><strong><%= idx + 1 %></strong></td>
+                <td><strong><%= c&.code %></strong></td>
+                <td class="left"><%= c&.name %></td>
+                <td><%= c&.credits %></td>
+                <td><%= number_with_precision(total, precision: 2) %></td>
+                <td><%= letter || 'F' %></td>
+              </tr>
+            <% end %>
+          <% else %>
+            <tr>
+              <td colspan="6" class="left"><span class="muted">Chưa có lần trượt nào.</span></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>STT</th>
+            <th>Mã HP</th>
+            <th class="left">Tên học phần</th>
+            <th>TC</th>
+            <th>Chuyên cần (20%)</th>
+            <th>Giữa kỳ (20%)</th>
+            <th>Cuối kỳ (60%)</th>
+            <th>Tổng điểm</th>
+            <th>Chữ</th>
+            <th>Kết quả</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @enrollments.each_with_index do |enrollment, index| %>
+            <% course = enrollment.course %>
+            <tr>
+              <td><strong><%= index + 1 %></strong></td>
+              <td><strong><%= course.code %></strong></td>
+              <td class="left"><%= course.name %>
+                <% if enrollment.is_retake_course? %>
+                  <span style="background:#ffe0e6;color:#8B0000;padding:2px 6px;border-radius:3px;font-size:11px;font-weight:bold;margin-left:6px;">HỌC LẠI</span>
+                <% end %>
+              </td>
+              <td><%= course.credits %></td>
+              <td>
+                <% v = enrollment.attendance_score %>
+                <% if v.present? %>
+                  <div class="progress"><div class="bar bar-blue" style="width:<%= (v.to_f * 10).clamp(0,100) %>%"></div></div>
+                  <div class="muted"><%= number_with_precision(v, precision: 1) %></div>
+                <% else %>
+                  <span class="muted">--</span>
+                <% end %>
+              </td>
+              <td>
+                <% v = enrollment.midterm_exam_score %>
+                <% if v.present? %>
+                  <div class="progress"><div class="bar bar-cyan" style="width:<%= (v.to_f * 10).clamp(0,100) %>%"></div></div>
+                  <div class="muted"><%= number_with_precision(v, precision: 1) %></div>
+                <% else %>
+                  <span class="muted">--</span>
+                <% end %>
+              </td>
+              <td>
+                <% v = enrollment.final_exam_score %>
+                <% if v.present? %>
+                  <div class="progress"><div class="bar bar-violet" style="width:<%= (v.to_f * 10).clamp(0,100) %>%"></div></div>
+                  <div class="muted"><%= number_with_precision(v, precision: 1) %></div>
+                <% else %>
+                  <span class="muted">--</span>
+                <% end %>
+              </td>
+              <td><strong><%= enrollment.total_score.present? ? number_with_precision(enrollment.total_score, precision: 2) : '--' %></strong></td>
+              <td>
+                <% total = enrollment.total_score %>
+                <% letter = if total.nil?
+  nil
+elsif total >= 9.0
+  'A+'
+elsif total >= 8.5
+  'A'
+elsif total >= 8.0
+  'B+'
+elsif total >= 7.0
+  'B'
+elsif total >= 6.5
+  'C+'
+elsif total >= 5.5
+  'C'
+elsif total >= 5.0
+  'D+'
+elsif total >= 4.0
+  'D'
+else
+  'F'
+end %>
+                <%= letter || '--' %>
+              </td>
+              <td>
+                <% if enrollment.total_score.present? && enrollment.total_score > 0 %>
+                  <%= enrollment.passed? ? 'Đạt' : 'Trượt' %>
+                <% else %>
+                  Chưa có
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="margin-top: 16px; background:#fff; border:1px solid #e6ecf1; border-radius:8px; padding:12px;">
+      <h4 style="margin:0 0 8px; color:#334;">Ghi chú</h4>
+      <div class="muted">Tổng điểm = Chuyên cần × 20% + Giữa kỳ × 20% + Cuối kỳ × 60%</div>
+      <div class="muted" style="margin-top:6px; display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px;">
+        <div>A+ : 9.0 - 10.0</div>
+        <div>A  : 8.5 - 8.9</div>
+        <div>B+ : 8.0 - 8.4</div>
+        <div>B  : 7.0 - 7.9</div>
+        <div>C+ : 6.5 - 6.9</div>
+        <div>C  : 5.5 - 6.4</div>
+        <div>D+ : 5.0 - 5.4</div>
+        <div>D  : 4.0 - 4.9</div>
+        <div>F  : Dưới 4.0</div>
+      </div>
+    </div>
+  <% else %>
+    <div class="card" style="text-align:center;">
+      <i class="fas fa-book-open" style="font-size: 50px; color: #ddd;"></i>
+      <h3>Chưa có kết quả học tập</h3>
+      <p class="muted">Bạn chưa đăng ký môn học nào hoặc chưa có điểm.</p>
+      <%= link_to "Đăng ký môn học ngay", student_courses_path, class: "btn" %>
+    </div>
+  <% end %>
+</div>

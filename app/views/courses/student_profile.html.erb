@@ -1,0 +1,57 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; display: flex; height: 100vh; overflow: hidden; }
+  .sidebar { width: 250px; background: #fff; border-right: 1px solid #ddd; display: flex; flex-direction: column; }
+  .logo-area { padding: 15px; text-align: center; border-bottom: 1px solid #eee; } .logo-area img { max-width: 180px; }
+  .menu { list-style: none; padding: 0; margin-top: 10px; }
+  .menu-link { display: flex; align-items: center; padding: 12px 20px; text-decoration: none; color: #555; font-weight: 500; border-bottom: 1px solid #f9f9f9; }
+  .menu-link:hover { color: #0056b3; background: #f0f8ff; }
+  .menu-link.active { background: #e8f4fd; color: #0056b3; font-weight: bold; border-left: 4px solid #0056b3; }
+  .menu-icon { width: 25px; color: #777; } .menu-link.active .menu-icon { color: #0056b3; }
+  .main-content { flex: 1; padding: 20px; overflow-y: auto; }
+  .profile-container { background: #fff; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  .profile-header { background: #e8f4fd; padding: 20px; border-bottom: 1px solid #cce5ff; display: flex; align-items: center; gap: 20px; }
+  .big-avatar { width: 100px; height: 100px; background: #fff; border-radius: 50%; border: 4px solid #fff; overflow: hidden; }
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; }
+  .info-label { font-size: 12px; color: #888; } .info-value { font-size: 14px; color: #333; font-weight: 500; border-bottom: 1px dashed #eee; padding-bottom: 5px; }
+  .btn-edit { background: #007bff; color: white; padding: 8px 15px; border-radius: 4px; text-decoration: none; font-size: 13px; }
+</style>
+
+<div class="sidebar">
+  <div class="logo-area"><%= image_tag "Logo-VNU-IS-2.jpg", alt: "IS Logo", loading: "lazy" %></div>
+  <ul class="menu">
+    <li><a href="<%= student_dashboard_path %>" class="menu-link"><i class="fas fa-home menu-icon"></i> TRANG CHỦ</a></li>
+    
+    <li><a href="<%= student_profile_path %>" class="menu-link active"><i class="fas fa-info-circle menu-icon"></i> THÔNG TIN CHUNG</a></li>
+    
+    <li><a href="<%= student_courses_path %>" class="menu-link"><i class="fas fa-edit menu-icon"></i> ĐĂNG KÝ HỌC PHẦN</a></li>
+    <li><a href="<%= student_results_path %>" class="menu-link"><i class="fas fa-book menu-icon"></i> KẾT QUẢ HỌC TẬP</a></li>
+  </ul>
+</div>
+
+<div class="main-content">
+  <% if notice %> <div style="background:#d4edda; color:#155724; padding:10px; margin-bottom:15px; border-radius:4px;">✅ <%= notice %></div> <% end %>
+
+  <div class="profile-container">
+    <div class="profile-header">
+      <div class="big-avatar"><% if current_user.avatar.attached? %><%= image_tag current_user.avatar, style: "width:100%; height:100%; object-fit:cover;" %><% else %><img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" style="width:100%; height:100%; object-fit:cover;"><% end %></div>
+      <div>
+        <h2 style="margin:0; color:#0056b3;"><%= current_user.full_name.presence || current_user.email %></h2>
+        <p style="margin:5px 0; color:#666;">MSSV: <%= current_user.student_id.presence || "Chưa cập nhật" %> | Trạng thái: Đang học</p>
+      </div>
+      <div style="margin-left: auto;"><a href="<%= new_profile_request_path %>" class="btn-edit"><i class="fas fa-pen"></i> Yêu cầu chỉnh sửa</a></div>
+    </div>
+    <div style="padding: 20px;">
+      <h3 style="color:#d9534f; border-bottom:2px solid #eee; padding-bottom:10px;">THÔNG TIN CÁ NHÂN</h3>
+      <div class="info-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div><div class="info-label">Họ và tên</div><div class="info-value"><%= current_user.full_name.presence || "(Chưa cập nhật)" %></div></div>
+        <div><div class="info-label">Mã sinh viên</div><div class="info-value"><%= current_user.student_id.presence || "(Chưa cập nhật)" %></div></div>
+        <div><div class="info-label">Ngành học</div><div class="info-value"><%= current_user.major.presence || "(Chưa cập nhật)" %></div></div>
+        <div><div class="info-label">Ngày sinh</div><div class="info-value"><%= current_user.dob ? current_user.dob.strftime("%d/%m/%Y") : "(Chưa cập nhật)" %></div></div>
+        <div><div class="info-label">SĐT</div><div class="info-value"><%= current_user.phone.presence || "(Trống)" %></div></div>
+        <div><div class="info-label">Email</div><div class="info-value"><%= current_user.email %></div></div>
+        <div><div class="info-label">Địa chỉ</div><div class="info-value"><%= current_user.address.presence || "(Trống)" %></div></div>
+      </div>
+    </div>
+  </div>
+</div>

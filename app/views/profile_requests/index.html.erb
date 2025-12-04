@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Quản lý yêu cầu hồ sơ</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background-color: #f4f6f9; padding: 20px; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+    .title { color: #333; font-size: 24px; font-weight: bold; }
+    .btn-back { background: #6c757d; color: white; padding: 8px 15px; border-radius: 4px; text-decoration: none; }
+    table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    th { background: #fd7e14; color: white; padding: 12px; text-align: left; }
+    td { padding: 12px; border-bottom: 1px solid #eee; }
+    .btn { padding: 5px 10px; border-radius: 4px; text-decoration: none; font-size: 14px; border: none; cursor: pointer; }
+    .btn-approve { background: rgba(40,167,69,0.3); color: #155724; }
+    .btn-reject { background: rgba(220,53,69,0.3); color: #721c24; }
+    .empty-state { text-align: center; padding: 50px; background: white; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title">
+        <i class="fas fa-user-edit"></i> Quản lý yêu cầu hồ sơ
+      </div>
+      <%= link_to "← Về trang Admin", admin_root_path, class: "btn-back" %>
+    </div>
+
+    <% if @requests.any? %>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Sinh viên</th>
+            <th>Thông tin thay đổi</th>
+            <th>Ngày gửi</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @requests.each do |req| %>
+            <tr>
+              <td><%= req.id %></td>
+              <td>
+                <strong><%= req.user.email %></strong><br>
+                <%= req.user.full_name %>
+              </td>
+              <td>
+                <%= req.request_description %>
+                <% if req.reason.present? %>
+                  <br><small><strong>Lý do:</strong> <%= req.reason %></small>
+                <% end %>
+              </td>
+              <td><%= req.created_at.strftime("%d/%m/%Y %H:%M") %></td>
+              <td>
+                <%= form_tag(approve_admin_profile_request_path(req), method: :patch, style: "display: inline;") do %>
+                  <button type="submit" class="btn btn-approve">Duyệt</button>
+                <% end %>
+                <%= form_tag(reject_admin_profile_request_path(req), method: :patch, style: "display: inline; margin-left: 5px;") do %>
+                  <button type="submit" class="btn btn-reject">Từ chối</button>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <div class="empty-state">
+        <i class="fas fa-check-circle" style="font-size: 50px; color: #28a745;"></i>
+        <h3>Không có yêu cầu nào đang chờ duyệt</h3>
+        <p>Tất cả yêu cầu đã được xử lý.</p>
+      </div>
+    <% end %>
+  </div>
+</body>
+</html>

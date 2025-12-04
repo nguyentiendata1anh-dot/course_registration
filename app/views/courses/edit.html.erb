@@ -1,0 +1,138 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; margin: 0; }
+  .admin-header { background: #343a40; color: white; padding: 20px; text-align: center; margin-bottom: 20px; }
+  .admin-header h1 { margin: 0; font-size: 28px; }
+  .container { max-width: 700px; margin: 20px auto; padding: 0 20px; }
+  .form-card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+  .form-card h2 { color: #0056b3; margin-bottom: 20px; text-align: center; }
+  .form-group { margin-bottom: 15px; }
+  .form-group label { display: block; font-weight: 600; color: #333; margin-bottom: 5px; }
+  .form-control, .form-select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px; }
+  .form-control:focus, .form-select:focus { outline: none; border-color: #007bff; box-shadow: 0 0 5px rgba(0,123,255,0.3); }
+  .btn-submit { background: #28a745; color: white; border: none; padding: 12px; width: 100%; cursor: pointer; font-weight: bold; border-radius: 4px; font-size: 16px; margin-top: 10px; }
+  .btn-submit:hover { background: #218838; }
+  .error-msg { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 4px; margin-bottom: 15px; }
+  .error-msg h3 { margin-top: 0; }
+  .back-link { text-align: center; margin-top: 15px; }
+  .back-link a { color: #6c757d; text-decoration: none; }
+  .back-link a:hover { color: #495057; }
+  .form-row { display: flex; gap: 15px; }
+  .form-row .form-group { flex: 1; margin-bottom: 0; }
+</style>
+
+<div class="admin-header">
+  <h1>Chỉnh sửa môn học</h1>
+</div>
+
+<div class="container">
+  <div class="form-card">
+    <%= form_with(model: @course, url: admin_course_path(@course), method: :patch, local: true) do |form| %>
+      <% if @course.errors.any? %>
+        <div class="error-msg">
+          <h3><%= pluralize(@course.errors.count, "lỗi") %> khi lưu môn học:</h3>
+          <ul style="margin: 10px 0 0;">
+            <% @course.errors.each do |error| %>
+              <li><%= error.full_message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <div class="form-group">
+        <%= form.label :code, "Mã môn" %>
+        <%= form.text_field :code, class: "form-control", placeholder: "VD: CS101" %>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :name, "Tên môn học" %>
+        <%= form.text_field :name, class: "form-control", placeholder: "Tên môn học..." %>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :term_id, "Kỳ học" %>
+        <%= form.collection_select :term_id, Term.all.order(start_date: :desc), :id, :name, { include_blank: "Chọn kỳ học" }, class: "form-select" %>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :teacher_name, "Giảng viên" %>
+        <%= form.text_field :teacher_name, class: "form-control", placeholder: "Tên giảng viên..." %>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <%= form.label :room, "Phòng học" %>
+          <%= form.text_field :room, class: "form-control", placeholder: "VD: A101" %>
+        </div>
+        <div class="form-group">
+          <%= form.label :schedule, "Ghi chú lịch" %>
+          <%= form.text_field :schedule, class: "form-control", placeholder: "Ghi chú..." %>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <%= form.label :day_of_week, "Ngày học" %>
+          <%= form.select :day_of_week, 
+              { "Thứ 2 (Monday)" => "monday", "Thứ 3 (Tuesday)" => "tuesday", "Thứ 4 (Wednesday)" => "wednesday", 
+                "Thứ 5 (Thursday)" => "thursday", "Thứ 6 (Friday)" => "friday", "Thứ 7 (Saturday)" => "saturday", "CN (Sunday)" => "sunday" },
+              { include_blank: "Chọn ngày..." },
+              class: "form-select" %>
+        </div>
+        <div class="form-group">
+          <%= form.label :start_time, "Giờ bắt đầu" %>
+          <%= form.time_field :start_time, class: "form-control" %>
+        </div>
+        <div class="form-group">
+          <%= form.label :end_time, "Giờ kết thúc" %>
+          <%= form.time_field :end_time, class: "form-control" %>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <%= form.label :credits, "Tín chỉ" %>
+          <%= form.number_field :credits, class: "form-control", placeholder: "3" %>
+        </div>
+        <div class="form-group">
+          <%= form.label :capacity, "Sĩ số tối đa" %>
+          <%= form.number_field :capacity, class: "form-control", placeholder: "40" %>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <%= form.label :start_date, "📅 Ngày bắt đầu môn" %>
+          <%= form.date_field :start_date, class: "form-control" %>
+        </div>
+        <div class="form-group">
+          <%= form.label :end_date, "📅 Ngày kết thúc môn" %>
+          <%= form.date_field :end_date, class: "form-control" %>
+        </div>
+      </div>
+
+      <div class="form-group" style="color:#555; font-size:13px;">
+        Hạn đăng ký sẽ tự động = ngày bắt đầu + 7 ngày. (Bạn có thể chỉnh `deadline` thủ công nếu cần trong model hoặc console.)
+      </div>
+
+      <div class="form-group">
+        <%= form.label :prerequisite, "📌 Môn học tiên quyết" %>
+        <%= form.select :prerequisite, 
+          options_from_collection_for_select(Course.all, :code, :name, @course.prerequisite),
+          { include_blank: "Không có tiên quyết" },
+          class: "form-select" %>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :description, "📖 Mô tả chi tiết" %>
+        <%= form.text_area :description, rows: 4, class: "form-control", placeholder: "Nội dung chi tiết môn học..." %>
+      </div>
+
+      <%= form.submit "💾 Cập nhật môn học", class: "btn-submit" %>
+    <% end %>
+
+    <div class="back-link">
+      <%= link_to "← Quay lại admin", admin_root_path %>
+    </div>
+  </div>
+</div>

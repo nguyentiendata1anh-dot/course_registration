@@ -1,0 +1,63 @@
+<div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
+  <%= form_with(model: course, local: true) do |form| %>
+    <% if course.errors.any? %>
+      <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 4px; margin-bottom: 15px;">
+        <h3><%= pluralize(course.errors.count, "lỗi") %> khi lưu môn học:</h3>
+        <ul style="margin: 10px 0 0;">
+          <% course.errors.each do |error| %>
+            <li><%= error.full_message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div style="margin-bottom: 10px;"><%= form.label :code, "Mã môn" %><br><%= form.text_field :code, style: "width:100%; padding:8px;" %></div>
+    <div style="margin-bottom: 10px;"><%= form.label :name, "Tên môn" %><br><%= form.text_field :name, style: "width:100%; padding:8px;" %></div>
+    
+    <div style="margin-bottom: 10px;">
+      <%= form.label :teacher_name, "👨‍🏫 Giảng viên" %><br>
+      <%= form.text_field :teacher_name, style: "width:100%; padding:8px;" %>
+    </div>
+
+    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+      <div style="flex: 1;"><%= form.label :room, "Phòng học" %><br><%= form.text_field :room, style: "width:100%; padding:8px;" %></div>
+      <div style="flex: 1;"><%= form.label :schedule, "Ghi chú lịch" %><br><%= form.text_field :schedule, style: "width:100%; padding:8px;" %></div>
+    </div>
+
+    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+      <div style="flex: 1;">
+        <%= form.label :day_of_week, "Ngày học" %><br>
+        <%= form.select :day_of_week, 
+            { "Thứ 2" => "monday", "Thứ 3" => "tuesday", "Thứ 4" => "wednesday", 
+              "Thứ 5" => "thursday", "Thứ 6" => "friday", "Thứ 7" => "saturday", "CN" => "sunday" },
+            { include_blank: "Chọn ngày" },
+            style: "width:100%; padding:8px;" %>
+      </div>
+      <div style="flex: 1;">
+        <%= form.label :start_time, "Giờ bắt đầu" %><br>
+        <%= form.time_field :start_time, style: "width:100%; padding:8px;" %>
+      </div>
+      <div style="flex: 1;">
+        <%= form.label :end_time, "Giờ kết thúc" %><br>
+        <%= form.time_field :end_time, style: "width:100%; padding:8px;" %>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 10px;"><%= form.label :credits, "Tín chỉ" %><br><%= form.number_field :credits, style: "width:100%; padding:8px;" %></div>
+    <div style="margin-bottom: 10px;"><%= form.label :capacity, "Sĩ số" %><br><%= form.number_field :capacity, style: "width:100%; padding:8px;" %></div>
+    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+      <div style="flex: 1;"><%= form.label :start_date, "Ngày bắt đầu môn" %><br><%= form.date_field :start_date, style: "width:100%; padding:8px;" %></div>
+      <div style="flex: 1;"><%= form.label :end_date, "Ngày kết thúc môn" %><br><%= form.date_field :end_date, style: "width:100%; padding:8px;" %></div>
+    </div>
+    <div style="margin-bottom: 10px; color:#555; font-size: 13px;">
+      Hạn đăng ký sẽ tự động đặt = ngày bắt đầu + 7 ngày.
+    </div>
+    <div style="margin-bottom: 10px;">
+      <%= form.label :prerequisite, "Yêu cầu tiên quyết" %><br>
+      <%= form.select :prerequisite, options_from_collection_for_select(Course.all, :code, :name, course.prerequisite), { include_blank: "Không có" }, style: "width:100%; padding:8px;" %>
+    </div>
+    <div style="margin-bottom: 10px;"><%= form.label :description, "Mô tả" %><br><%= form.text_area :description, rows: 3, style: "width:100%; padding:8px;" %></div>
+
+    <%= form.submit form.object.new_record? ? "Tạo môn học" : "Cập nhật môn học", style: "background:green; color:white; padding:10px; width:100%; border:none; cursor:pointer;" %>
+  <% end %>
+</div>

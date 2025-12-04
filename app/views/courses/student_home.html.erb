@@ -1,0 +1,93 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  body { margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; background-color: #f5f5f5; display: flex; height: 100vh; overflow: hidden; }
+  .sidebar { width: 250px; background: #fff; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; flex-shrink: 0; }
+  .logo-area { padding: 15px; text-align: center; border-bottom: 1px solid #eee; } .logo-area img { max-width: 180px; }
+  .menu { list-style: none; padding: 0; margin-top: 10px; }
+  .menu-link { display: flex; align-items: center; padding: 12px 20px; text-decoration: none; color: #555; font-size: 14px; font-weight: 500; border-bottom: 1px solid #f9f9f9; }
+  .menu-link:hover { color: #0078b4; background: #e8f4f8; }
+  .menu-link.active { background: #e8f4f8; color: #0078b4; font-weight: bold; border-left: 4px solid #0078b4; }
+  .main-content { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
+  
+  .student-header { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; gap: 20px; align-items: center; }
+  .avatar { width: 90px; height: 90px; background: #e8f4f8; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow: hidden; }
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px 30px; font-size: 13px; flex: 1; }
+  .dashboard-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 20px; }
+  .reminder-card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+  
+  .stat-card { padding: 20px; border-radius: 8px; color: #333; display: flex; flex-direction: column; justify-content: space-between; min-height: 100px; text-decoration: none; transition: transform 0.2s; cursor: pointer; }
+  .stat-card:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  .stat-blue { background: #e8f4f8; border-left: 4px solid #0078b4; } .stat-yellow { background: #fffbf0; border-left: 4px solid #ffc107; }
+  
+  .chart-card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-top: 20px; width: 50%; margin-left: auto; margin-right: auto; }
+</style>
+
+<div class="sidebar">
+  <div class="logo-area"><%= image_tag "Logo-VNU-IS-2.jpg", alt: "IS Logo", loading: "lazy" %></div>
+  <ul class="menu">
+    <li><a href="<%= student_dashboard_path %>" class="menu-link active">TRANG CHỦ</a></li>
+    <li><a href="<%= student_profile_path %>" class="menu-link">THÔNG TIN CHUNG</a></li>
+    <li><a href="<%= student_courses_path %>" class="menu-link">ĐĂNG KÝ HỌC PHẦN</a></li>
+    <li><a href="<%= student_results_path %>" class="menu-link">KẾT QUẢ HỌC TẬP</a></li>
+  </ul>
+</div>
+
+<div class="main-content">
+  <div class="student-header">
+    <div class="avatar">
+      <% if current_user.avatar.attached? %>
+        <%= image_tag current_user.avatar, style: "width:100%; height:100%; object-fit:cover;" %>
+      <% else %>
+        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" style="width:100%; height:100%; object-fit:cover;">
+      <% end %>
+    </div>
+    <div class="info-grid">
+      <div>MSSV: <b><%= current_user.student_id.presence || "Chưa cập nhật" %></b></div>
+      <div>Họ tên: <b style="text-transform: uppercase;"><%= current_user.full_name.presence || current_user.email.split('@').first %></b></div>
+      <div>Ngành: <b><%= current_user.major.presence || "Chưa cập nhật" %></b></div>
+      <div>Khoa: <b>Quốc tế</b></div>
+    </div>
+    <div style="text-align: right;"><%= link_to "Thoát", destroy_user_session_path, data: { turbo_method: :delete }, style: "color:red; text-decoration:none; border:1px solid red; padding:5px 15px; border-radius:4px; font-size:13px;" %></div>
+  </div>
+
+  <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+    <div class="reminder-card" style="grid-column: 1 / 2; background: #e8f4f8; padding: 25px; border-radius: 8px; border-left: 4px solid #0078b4;">
+      <div style="font-size:13px; color:#0078b4; margin-bottom:10px; font-weight:600;">Thông báo từ nhà trường</div>
+      <% if @latest_reminder %>
+        <div style="font-size:16px; font-weight:bold; margin-bottom:10px; line-height:1.4; color:#333;"><%= @latest_reminder.title %></div>
+        <div style="font-size:13px; line-height:1.5; margin-bottom:10px; color:#666;"><%= truncate(@latest_reminder.content, length: 150) %></div>
+        <div style="font-size:11px; color:#999;"><%= time_ago_in_words(@latest_reminder.created_at) %> trước</div>
+      <% else %>
+        <div style="font-size:14px; font-weight:500; margin-top:10px; color:#666;">Không có thông báo mới.</div>
+      <% end %>
+    </div>
+    
+    <%= link_to student_schedule_path, class: "stat-card stat-blue" do %>
+      <div>
+        <div style="font-size: 12px; font-weight:600; color:#0078b4;">Lịch học tuần</div>
+        <div style="font-size: 32px; font-weight: bold; margin-top: 5px; color:#0078b4;"><%= current_user.enrollments.count %></div>
+        <div style="font-size: 11px; margin-top: 5px; color:#666;">Xem chi tiết →</div>
+      </div>
+    <% end %>
+
+    <%= link_to student_results_path, class: "stat-card stat-yellow" do %>
+      <div>
+        <div style="font-size: 12px; font-weight:600; color:#f0a000;">Kết quả học tập</div>
+        <div style="font-size: 32px; font-weight: bold; margin-top: 5px; color:#f0a000;"><%= number_with_precision(@gpa_10, precision: 2) %></div>
+        <div style="font-size: 11px; margin-top: 5px; color:#666;">GPA (thang 10)</div>
+        <div style="font-size: 11px; margin-top: 5px; color:#999;">Đã đạt: <%= @total_credits %> TC</div>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="chart-card">
+    <div style="text-align:center; font-weight:bold; margin-bottom:20px; color:#0078b4;">Tiến độ tích lũy tín chỉ</div>
+    <div style="width:140px; height:140px; border-radius:50%; background:conic-gradient(#0078b4 0% calc(<%= (@total_credits.to_f / 130 * 100).to_i %>%), #f0f0f0 calc(<%= (@total_credits.to_f / 130 * 100).to_i %>%) 100%); margin:0 auto; position:relative;">
+      <div style="width:100px; height:100px; background:white; border-radius:50%; position:absolute; top:20px; left:20px; display:flex; align-items:center; justify-content:center; flex-direction:column;">
+        <div style="font-weight:bold; font-size:16px; color:#0078b4;"><%= @total_credits %>/130</div>
+        <div style="font-size:11px; color:#999;">TC</div>
+      </div>
+    </div>
+    <div style="text-align:center; margin-top:15px; font-weight:bold; color:#0078b4;">Đã tích lũy: <%= @total_credits %> / 130 tín chỉ (<%=  ((@total_credits.to_f / 130) * 100).round(1) %>%)</div>
+  </div>
+</div>

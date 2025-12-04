@@ -1,0 +1,3 @@
+- [x] Edit config/routes.rb to add :index and :show to resources :courses under admin scope
+- [x] Restart Rails server
+- [x] Test deleting a term and a course to verify the error is resolved

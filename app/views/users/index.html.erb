@@ -1,0 +1,645 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+  }
+  
+  .admin-container { max-width: 1400px; margin: 0 auto; }
+  
+  .admin-header {
+    background: white;
+    padding: 25px 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+  }
+  
+  .admin-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #667eea;
+  }
+  
+  .admin-title i { margin-right: 12px; }
+  
+  .admin-logo img { height: 46px; margin-right: 14px; vertical-align: middle; }
+  
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  .user-info {
+    text-align: right;
+  }
+  
+  .user-info-name {
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+  }
+  
+  .user-info-role {
+    font-size: 12px;
+    color: #999;
+  }
+  
+  .btn-logout {
+    background: white;
+    color: #e33b5a;
+    border: 1px solid rgba(227,59,90,0.12);
+    padding: 8px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.18s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  }
+
+  .btn-logout i { color: #e33b5a; font-size: 15px; }
+
+  .btn-logout:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(90deg, rgba(227,59,90,0.06), rgba(227,59,90,0.02));
+    box-shadow: 0 8px 20px rgba(227,59,90,0.12);
+  }
+  
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 25px;
+    margin-bottom: 30px;
+  }
+  
+  .card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 48px rgba(0,0,0,0.15);
+  }
+  
+  .card-header {
+    padding: 18px 20px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    font-size: 15px;
+  }
+  
+  .card-header i { margin-right: 10px; }
+  
+  .card-header.bg-orange { background: linear-gradient(135deg, #ff9800 0%, #ff6f00 100%); }
+  .card-header.bg-blue { background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); }
+  .card-header.bg-green { background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%); }
+  .card-header.bg-red { background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%); }
+  .card-header.bg-purple { background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%); }
+  
+  .badge-new {
+    background: #ff5252;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  
+  .card-body {
+    padding: 20px;
+    font-size: 13px;
+  }
+  
+  .card-description {
+    color: #666;
+    margin-bottom: 15px;
+    font-size: 12px;
+  }
+  
+  .mini-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .mini-table th {
+    background: #f5f5f5;
+    padding: 10px;
+    font-weight: 600;
+    text-align: left;
+    border-bottom: 2px solid #eee;
+    font-size: 12px;
+    color: #666;
+  }
+  
+  .mini-table td {
+    padding: 10px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .mini-table tr:hover {
+    background: #fafafa;
+  }
+  
+  .btn-outline {
+    padding: 6px 12px;
+    border: 1px solid #e0e0e0;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: inline-block;
+  }
+  
+  .btn-outline:hover {
+    border-color: #ccc;
+    background: #f9f9f9;
+  }
+  
+  .btn-approve {
+    background: rgba(76, 175, 80, 0.1);
+    color: #4CAF50;
+    border-color: #4CAF50;
+  }
+  
+  .btn-reject {
+    background: rgba(244, 67, 54, 0.1);
+    color: #f44336;
+    border-color: #f44336;
+  }
+  
+  .btn-action {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.3s ease;
+    width: 100%;
+  }
+  
+  .btn-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+  
+  .form-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    margin-bottom: 8px;
+  }
+  
+  .form-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+  
+  .recent-list {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  
+  .recent-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 12px;
+  }
+  
+  .recent-item:last-child {
+    border-bottom: none;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+  }
+  
+  .empty-state i {
+    font-size: 48px;
+    color: #eee;
+    margin-bottom: 10px;
+    display: block;
+  }
+  
+  .table-scroll {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  
+  .link-all {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 12px;
+    margin-top: 10px;
+    display: inline-block;
+  }
+  
+  .link-all:hover {
+    text-decoration: underline;
+  }
+
+  /* Modal Styles */
+  .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+  .modal.active { display: flex; }
+  .modal-content { background: white; margin: auto; padding: 30px; border-radius: 12px; width: 90%; max-width: 900px; max-height: 80vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; }
+  .modal-header h2 { margin: 0; color: #667eea; font-size: 24px; }
+  .modal-close { background: none; border: none; font-size: 28px; cursor: pointer; color: #999; }
+  .modal-close:hover { color: #333; }
+  .modal-body { margin-bottom: 20px; }
+  .modal-list { max-height: 400px; overflow-y: auto; border: 1px solid #eee; border-radius: 6px; }
+  .list-item { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #f5f5f5; gap: 12px; }
+  .list-item:last-child { border-bottom: none; }
+  .list-item input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+  .list-item-text { flex: 1; }
+  .list-item-email { font-weight: 600; color: #333; }
+  .list-item-role { font-size: 12px; color: #999; margin-top: 3px; }
+  .modal-footer { display: flex; gap: 10px; justify-content: flex-end; }
+  .btn-primary { background: #667eea; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+  .btn-primary:hover { background: #5568d3; }
+  .btn-secondary { background: #f0f0f0; color: #333; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+  .btn-secondary:hover { background: #e0e0e0; }
+  .btn-danger { background: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+  .btn-danger:hover { background: #d32f2f; }
+  .select-all-box { display: flex; align-items: center; padding: 12px; gap: 12px; background: #f9f9f9; border-radius: 6px; margin-bottom: 10px; }
+  .select-all-box input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+</style>
+
+<div class="admin-container">
+  <div class="admin-header">
+    <div class="admin-title" style="display:flex; align-items:center;">
+        <div class="admin-logo">
+          <%= image_tag "Logo-VNU-IS-2.jpg", alt: "IS Logo", loading: "lazy", class: "local-is-logo" %>
+          <%# fallback: if you don't want to host locally, replace with the remote URL used earlier %>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <i class="fas fa-chart-line"></i>
+          <span>Dashboard</span>
+        </div>
+      </div>
+      <div class="header-right">
+      <div class="user-info">
+        <div class="user-info-name"><%= current_user.email %></div>
+        <div class="user-info-role">👑 Admin</div>
+      </div>
+        <%= button_to destroy_user_session_path,
+            method: :delete,
+            data: { turbo_confirm: "Bạn chắc chắn muốn đăng xuất?" },
+            class: "btn-logout" do %>
+          <i class="fas fa-sign-out-alt"></i> Đăng xuất
+        <% end %>
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+  <!-- 1. Phê duyệt hồ sơ -->
+  <div class="card">
+    <div class="card-header bg-orange">
+      <span><i class="fas fa-user-edit"></i> Phê duyệt hồ sơ</span>
+      <% if @pending_count > 0 %>
+        <span class="badge-new"><%= @pending_count %> yêu cầu</span>
+      <% end %>
+    </div>
+    <div class="card-body">
+      <div class="card-description">Duyệt yêu cầu thay đổi thông tin và ảnh đại diện của sinh viên.</div>
+      <% if @pending_requests.any? %>
+        <div class="table-scroll">
+          <table class="mini-table">
+            <thead><tr><th>Sinh viên</th><th>Yêu cầu</th><th style="width:80px;">Hành động</th></tr></thead>
+            <tbody>
+              <% @pending_requests.each do |req| %>
+                <tr>
+                  <td><strong><%= req.user.email.split('@').first %></strong></td>
+                  <td><%= req.request_description %></td>
+                  <td style="white-space:nowrap;">
+                    <%= link_to "✓ Duyệt", approve_admin_profile_request_path(req), 
+                        data: { turbo_method: :patch, turbo_confirm: "Xác nhận duyệt?" },
+                        class: "btn-outline btn-approve" %>
+                    <%= link_to "✗ Từ chối", reject_admin_profile_request_path(req), 
+                        data: { turbo_method: :patch, turbo_confirm: "Xác nhận từ chối?" },
+                        class: "btn-outline btn-reject" %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+        <a href="<%= admin_profile_requests_path %>" class="link-all">Xem tất cả yêu cầu →</a>
+      <% else %>
+        <div class="empty-state">
+          <i class="fas fa-check-circle"></i>
+          Không có yêu cầu nào đang chờ
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- 2. Tài khoản -->
+  <div class="card">
+    <div class="card-header bg-blue">
+      <span><i class="fas fa-users"></i> Tài khoản</span>
+      <%= link_to "+ Thêm", new_admin_user_path, class: "btn-outline" %>
+    </div>
+    <div class="card-body">
+      <div class="card-description">Quản lý tài khoản admin và sinh viên.</div>
+      <% if @users.any? %>
+        <div class="table-scroll">
+          <table class="mini-table">
+            <thead><tr><th>Email</th><th>Vai trò</th><th style="width:50px;">Hành động</th></tr></thead>
+            <tbody>
+              <% @users.each do |u| %>
+                <tr>
+                  <td><strong><%= u.email %></strong></td>
+                  <td>
+                    <% if u.admin? %>
+                      <span style="background: rgba(102,126,234,0.2); color: #667eea; padding: 2px 8px; border-radius: 3px; font-size: 11px;">Admin</span>
+                    <% else %>
+                      <span style="background: rgba(76,175,80,0.2); color: #4CAF50; padding: 2px 8px; border-radius: 3px; font-size: 11px;">SV</span>
+                    <% end %>
+                  </td>
+                  <td>
+                    <% unless u == current_user %>
+                      <%= button_to "Xóa", user_path(u), method: :delete, data: { turbo_confirm: "Xóa thật?" }, class: "btn-outline", style: "color: #f44336; border-color: #f44336; padding: 4px 8px; font-size: 11px;" %>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+        <a href="#" onclick="openUsersModal(); return false;" class="link-all">Xem tất cả & quản lý →</a>
+      <% else %>
+        <div class="empty-state"><i class="fas fa-user-slash"></i> Không có tài khoản</div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- 3. Kỳ học -->
+  <div class="card">
+    <div class="card-header bg-orange">
+      <span><i class="fas fa-calendar"></i> Kỳ học</span>
+      <%= link_to "+ Thêm", new_admin_term_path, class: "btn-outline" %>
+    </div>
+    <div class="card-body">
+      <div class="card-description">Quản lý các kỳ học (semesters) và ngày bắt đầu/kết thúc.</div>
+      <% if Term.any? %>
+        <div class="table-scroll">
+          <table class="mini-table">
+            <thead><tr><th>Tên kỳ</th><th>Bắt đầu</th><th>Kết thúc</th><th>Số môn</th><th style="width:35px;">Hành động</th></tr></thead>
+            <tbody>
+              <% Term.order(start_date: :desc).limit(10).each do |t| %>
+                <tr>
+                  <td><strong><%= t.name %></strong></td>
+                  <td><%= t.start_date&.strftime("%d/%m/%Y") || "—" %></td>
+                  <td><%= t.end_date&.strftime("%d/%m/%Y") || "—" %></td>
+                  <td style="text-align: center;"><%= t.courses.count %></td>
+                  <td style="white-space: nowrap;">
+                    <%= link_to edit_admin_term_path(t), class: "btn-outline", style: "padding: 4px 8px; font-size: 11px;" do %><i class="fas fa-pen"></i><% end %>
+                    <%= link_to admin_term_path(t), data: { turbo_method: :delete, turbo_confirm: "Xóa kỳ học này?" }, class: "btn-outline", style: "padding: 4px 8px; font-size: 11px; color: #f44336; border-color: #f44336;" do %><i class="fas fa-trash"></i><% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+        <%= link_to "Xem tất cả", admin_terms_path, class: "link-all" %>
+      <% else %>
+        <div class="empty-state"><i class="fas fa-calendar"></i> Chưa có kỳ học nào</div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- 4. Môn học -->
+  <div class="card">
+    <div class="card-header bg-green">
+      <span><i class="fas fa-book"></i> Môn học</span>
+      <%= link_to "+ Thêm", new_admin_course_path, class: "btn-outline" %>
+    </div>
+    <div class="card-body">
+      <div class="card-description">Quản lý danh sách học phần, giảng viên, lịch học.</div>
+      <% if Course.any? %>
+        <div class="table-scroll">
+          <table class="mini-table">
+            <thead><tr><th>Mã</th><th>Tên môn</th><th style="width:30px; text-align: center;">TC</th><th style="width:35px; text-align: center;">Sĩ số</th><th style="width:70px;">Hành động</th></tr></thead>
+            <tbody>
+              <% Course.order(:code).limit(10).each do |c| %>
+                <tr>
+                  <td><strong><%= c.code %></strong></td>
+                  <td title="<%= c.name %>"><%= truncate(c.name, length: 18) %></td>
+                  <td style="text-align: center; font-weight: 500;"><%= c.credits %></td>
+                  <td style="text-align: center;">
+                    <span style="background: rgba(33,150,243,0.1); color: #2196F3; padding: 2px 6px; border-radius: 3px; font-size: 11px;"><%= c.enrollments.count %>/<%= c.capacity %></span>
+                  </td>
+                  <td style="white-space: nowrap;">
+                    <%= link_to edit_admin_course_path(c), class: "btn-outline", style: "padding: 4px 8px; font-size: 11px;" do %><i class="fas fa-pen"></i><% end %>
+                    <%= link_to admin_course_path(c), data: { turbo_method: :delete, turbo_confirm: "Xóa môn học này?" }, class: "btn-outline", style: "padding: 4px 8px; font-size: 11px; color: #f44336; border-color: #f44336;" do %><i class="fas fa-trash"></i><% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+        <a href="#" onclick="openCoursesModal(); return false;" class="link-all">Xem tất cả & quản lý →</a>
+      <% else %>
+        <div class="empty-state"><i class="fas fa-book-open"></i> Chưa có môn học nào</div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- 4. Cập nhật điểm -->
+  <div class="card">
+    <div class="card-header bg-red">
+      <span><i class="fas fa-chart-bar"></i> Cập nhật điểm</span>
+    </div>
+    <div class="card-body">
+      <div class="card-description">Nhập điểm chuyên cần, thi giữa kỳ, thi cuối kỳ cho sinh viên.</div>
+      <a href="<%= admin_scores_path %>" class="btn-action">Cập nhật điểm →</a>
+    </div>
+  </div>
+
+  <!-- 5. Đăng thông báo -->
+  <div class="card">
+    <div class="card-header bg-purple">
+      <span><i class="fas fa-bullhorn"></i> Thông báo</span>
+    </div>
+    <div class="card-body">
+      <div class="card-description">Gửi thông báo từ nhà trường tới sinh viên.</div>
+      <%= form_with model: @reminder, url: admin_reminders_path, local: true do |f| %>
+        <%= f.text_field :title, placeholder: "Tiêu đề thông báo...", class: "form-input" %>
+        <%= f.text_area :content, placeholder: "Nội dung...", rows: 3, class: "form-input", style: "resize: none;" %>
+        <%= f.submit "Đăng ngay", class: "btn-action" %>
+      <% end %>
+      <% if @recent_reminders.any? %>
+        <div class="recent-list" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+          <div style="font-size: 12px; color: #999; font-weight: 600; margin-bottom: 10px;">📋 Thông báo gần đây</div>
+          <% @recent_reminders.each do |r| %>
+            <div class="recent-item">
+              <span><strong><%= truncate(r.title, length: 25) %></strong></span>              
+              <%= button_to "✕", admin_reminder_path(r), method: :delete, form: { style: "display:inline;"}, style: "border: none; background: none; color: #f44336; cursor: pointer; padding: 0; font-size: 14px;" %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- Users Modal -->
+<div id="usersModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Quản lý tài khoản</h2>
+      <button class="modal-close" onclick="closeUsersModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="select-all-box">
+        <input type="checkbox" id="selectAllUsers" onchange="toggleAllUsers()">
+        <label for="selectAllUsers" style="cursor: pointer; margin: 0;">Chọn tất cả</label>
+        <span id="userCount" style="margin-left: auto; color: #999; font-size: 12px;">0 được chọn</span>
+      </div>
+      <div class="modal-list" id="usersList">
+        <% @users.each do |u| %>
+          <div class="list-item">
+            <input type="checkbox" class="user-checkbox" value="<%= u.id %>" onchange="updateUserCount()">
+            <div class="list-item-text">
+              <div class="list-item-email"><%= u.email %></div>
+              <div class="list-item-role"><%= u.admin? ? "Admin" : "Sinh viên" %></div>
+            </div>
+            <% unless u == current_user %>
+                            <%= button_to "Xóa", user_path(u), method: :delete, data: { turbo_confirm: "Xóa thật?" }, class: "btn-outline", style: "color: #f44336; border-color: #f44336; padding: 6px 10px; font-size: 11px;" %>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeUsersModal()">Đóng</button>
+      <button class="btn-danger" onclick="bulkDeleteUsers()">Xóa được chọn</button>
+    </div>
+  </div>
+</div>
+
+<!-- Courses Modal -->
+<div id="coursesModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Quản lý môn học</h2>
+      <button class="modal-close" onclick="closeCoursesModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="select-all-box">
+        <input type="checkbox" id="selectAllCourses" onchange="toggleAllCourses()">
+        <label for="selectAllCourses" style="cursor: pointer; margin: 0;">Chọn tất cả</label>
+        <span id="courseCount" style="margin-left: auto; color: #999; font-size: 12px;">0 được chọn</span>
+      </div>
+      <div class="modal-list" id="coursesList">
+        <% Course.all.each do |c| %>
+          <div class="list-item">
+            <input type="checkbox" class="course-checkbox" value="<%= c.id %>" onchange="updateCourseCount()">
+            <div class="list-item-text">
+              <div class="list-item-email"><%= c.code %> - <%= c.name %></div>
+              <div class="list-item-role"><%= c.credits %> TC | Sĩ số: <%= c.enrollments.count %>/<%= c.capacity %></div>
+            </div>            
+            <%= link_to "Sửa", edit_admin_course_path(c), class: "btn-outline", style: "padding: 6px 10px; font-size: 11px;" %>            
+            <%= link_to "Xóa", admin_course_path(c), data: { turbo_method: :delete, turbo_confirm: "Xóa môn học này?" }, class: "btn-outline", style: "color: #f44336; border-color: #f44336; padding: 6px 10px; font-size: 11px;" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeCoursesModal()">Đóng</button>
+      <button class="btn-danger" onclick="bulkDeleteCourses()">Xóa được chọn</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openUsersModal() { document.getElementById('usersModal').classList.add('active'); }
+  function closeUsersModal() { document.getElementById('usersModal').classList.remove('active'); document.getElementById('selectAllUsers').checked = false; updateUserCount(); }
+  function openCoursesModal() { document.getElementById('coursesModal').classList.add('active'); }
+  function closeCoursesModal() { document.getElementById('coursesModal').classList.remove('active'); document.getElementById('selectAllCourses').checked = false; updateCourseCount(); }
+
+  function toggleAllUsers() {
+    const checked = document.getElementById('selectAllUsers').checked;
+    document.querySelectorAll('.user-checkbox').forEach(cb => cb.checked = checked);
+    updateUserCount();
+  }
+
+  function toggleAllCourses() {
+    const checked = document.getElementById('selectAllCourses').checked;
+    document.querySelectorAll('.course-checkbox').forEach(cb => cb.checked = checked);
+    updateCourseCount();
+  }
+
+  function updateUserCount() {
+    const count = document.querySelectorAll('.user-checkbox:checked').length;
+    document.getElementById('userCount').textContent = count + ' được chọn';
+  }
+
+  function updateCourseCount() {
+    const count = document.querySelectorAll('.course-checkbox:checked').length;
+    document.getElementById('courseCount').textContent = count + ' được chọn';
+  }
+
+  function bulkDeleteUsers() {
+    const selected = Array.from(document.querySelectorAll('.user-checkbox:checked')).map(cb => cb.value);
+    if (selected.length === 0) { alert('Vui lòng chọn ít nhất một tài khoản'); return; }
+    if (!confirm('Xóa ' + selected.length + ' tài khoản? Hành động này không thể hoàn tác.')) return;
+    selected.forEach(id => {
+      fetch('/users/' + id, { method: 'DELETE', headers: { 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content } })
+        .then(() => location.reload());
+    });
+  }
+
+  function bulkDeleteCourses() {
+    const selected = Array.from(document.querySelectorAll('.course-checkbox:checked')).map(cb => cb.value);
+    if (selected.length === 0) { alert('Vui lòng chọn ít nhất một môn học'); return; }
+    if (!confirm('Xóa ' + selected.length + ' môn học? Hành động này không thể hoàn tác.')) return;
+    selected.forEach(id => {
+      fetch('/admin/courses/' + id, { method: 'DELETE', headers: { 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content } })
+        .then(() => location.reload());
+    });
+  }
+
+  document.getElementById('usersModal').addEventListener('click', function(event) {
+    if (event.target === this) closeUsersModal();
+  });
+
+  document.getElementById('coursesModal').addEventListener('click', function(event) {
+    if (event.target === this) closeCoursesModal();
+  });
+</script>

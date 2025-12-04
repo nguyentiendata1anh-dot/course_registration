@@ -1,0 +1,180 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  /* Layout */
+  body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; display: flex; height: 100vh; overflow: hidden; }
+  .sidebar { width: 250px; background: #fff; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; flex-shrink: 0; }
+  .logo-area { padding: 15px; text-align: center; border-bottom: 1px solid #eee; }
+  .logo-area img { max-width: 180px; }
+  .menu { list-style: none; padding: 0; margin-top: 10px; }
+  .menu-link { display: flex; align-items: center; padding: 12px 20px; text-decoration: none; color: #555; font-size: 14px; font-weight: 500; border-bottom: 1px solid #f9f9f9; }
+  .menu-link:hover { color: #0056b3; background: #f0f8ff; }
+  .menu-link.active { background: #e8f4fd; color: #0056b3; font-weight: bold; border-left: 4px solid #0056b3; }
+  .menu-icon { width: 25px; color: #777; }
+  .menu-link.active .menu-icon { color: #0056b3; }
+  .main-content { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+
+  /* Toolbar */
+  .toolbar { background: #fff; border: 1px solid #e6ecf1; padding: 10px; border-radius: 8px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .chip { background: #f4f6f8; border: 1px solid #e6ecf1; padding: 6px 12px; border-radius: 20px; font-size: 12px; color: #556; cursor: pointer; }
+  .chip.active { background: #e8f1ff; border-color: #a8c8ff; color: #235; font-weight: 600; }
+  .spacer { flex: 1; }
+  .btn { background: #fff; border: 1px solid #d4dce6; color: #334; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; }
+  .btn:hover { background: #f6f9ff; border-color: #a8c8ff; }
+  .week-label { font-weight: 600; color: #445; margin: 0 8px; }
+
+  /* Schedule grid */
+  .schedule-wrapper { background: #fff; border: 1px solid #e6ecf1; border-radius: 8px; padding: 12px; }
+  .grid { display: grid; grid-template-columns: 120px repeat(7, 1fr); }
+  .grid-header { display: contents; }
+  .grid-header .cell { background: #f8fbff; border: 1px solid #e6ecf1; padding: 10px; font-weight: 700; color: #2c5aa0; text-align: center; font-size: 12px; }
+  .grid-header .cell:first-child { background: #f0f3f7; color: #667; text-align: left; }
+  .grid-row { display: contents; }
+  .row-label { background: #fafafa; border: 1px solid #e6ecf1; padding: 12px; font-weight: 600; color: #667; }
+  .cell { border: 1px solid #e6ecf1; min-height: 120px; position: relative; padding: 8px; }
+
+  /* Course blocks */
+  .course-block { background: #edf5ff; border-left: 4px solid #4c8bf5; border-radius: 6px; padding: 8px; font-size: 12px; color: #234; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+  .course-title { font-weight: 700; margin-bottom: 4px; color: #1b4f9b; }
+  .course-meta { font-size: 11px; color: #556; line-height: 1.4; }
+  .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; margin-left: 6px; }
+  .badge-green { background: #e8f7ef; color: #0a7f42; }
+  .badge-blue { background: #e8f1ff; color: #1b4f9b; }
+
+  /* Empty */
+  .empty { color: #99a; font-size: 12px; }
+
+  /* Print */
+  @media print {
+    .sidebar, .toolbar { display: none !important; }
+    body { overflow: visible; height: auto; }
+    .main-content { padding: 0; }
+    .schedule-wrapper { border: none; }
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .grid { grid-template-columns: 80px 1fr; }
+    .grid-header .cell:nth-child(n+3),
+    .grid-row .cell:nth-child(n+3) { display: none; }
+  }
+</style>
+
+<div class="sidebar">
+  <div class="logo-area"><%= image_tag "Logo-VNU-IS-2.jpg", alt: "IS Logo", loading: "lazy" %></div>
+  <ul class="menu">
+    <li><a href="<%= student_dashboard_path %>" class="menu-link"><i class="fas fa-home menu-icon"></i> TRANG CHỦ</a></li>
+    <li><a href="<%= student_profile_path %>" class="menu-link"><i class="fas fa-info-circle menu-icon"></i> THÔNG TIN CHUNG</a></li>
+    <li><a href="<%= student_schedule_path %>" class="menu-link active"><i class="far fa-calendar-alt menu-icon"></i> THỜI KHÓA BIỂU</a></li>
+    <li><a href="<%= student_courses_path %>" class="menu-link"><i class="fas fa-edit menu-icon"></i> ĐĂNG KÝ HỌC PHẦN</a></li>
+    <li><a href="<%= student_results_path %>" class="menu-link"><i class="fas fa-book menu-icon"></i> KẾT QUẢ HỌC TẬP</a></li>
+  </ul>
+</div>
+
+<div class="main-content">
+  <%# Prepare data %>
+  <% enrolled_courses = @enrolled_courses || current_user.enrollments.includes(:course).map(&:course) %>
+  <% days = [
+      {key: 'monday', label: 'Thứ 2'},
+      {key: 'tuesday', label: 'Thứ 3'},
+      {key: 'wednesday', label: 'Thứ 4'},
+      {key: 'thursday', label: 'Thứ 5'},
+      {key: 'friday', label: 'Thứ 6'},
+      {key: 'saturday', label: 'Thứ 7'},
+      {key: 'sunday', label: 'Chủ nhật'}
+    ] %>
+  <% week_start = Date.current.beginning_of_week(:monday) %>
+  <% week_end = week_start + 6.days %>
+
+  <div class="toolbar">
+    <span class="chip active">Tất cả</span>
+    <span class="chip">Lịch học</span>
+    <span class="chip">Lịch thi</span>
+    <span class="spacer"></span>
+    <button class="btn" onclick="window.location.reload()"><i class="fas fa-history"></i> Hiện tại</button>
+    <span class="week-label">Tuần: <%= week_start.strftime('%d/%m/%Y') %> - <%= week_end.strftime('%d/%m/%Y') %></span>
+    <button class="btn" onclick="window.print()"><i class="fas fa-print"></i> In lịch</button>
+  </div>
+
+  <div class="schedule-wrapper">
+    <% if enrolled_courses.present? %>
+      <%# Build grid map: day -> bucket -> [courses] %>
+      <% grid_map = Hash.new { |h, k| h[k] = {'morning' => [], 'afternoon' => [], 'evening' => []} } %>
+      <% enrolled_courses.each do |c| %>
+        <% next unless c.respond_to?(:day_of_week) && c.day_of_week.present? %>
+        <% st = c.respond_to?(:start_time) ? c.start_time : nil %>
+        <% bucket = if st.nil?
+            'morning'
+          else
+            hr = st.hour
+            if hr < 12
+              'morning'
+            elsif hr < 18
+              'afternoon'
+            else
+              'evening'
+            end
+          end %>
+        <% grid_map[c.day_of_week][bucket] << c %>
+      <% end %>
+
+      <div class="grid">
+        <div class="grid-header">
+          <div class="cell">Ca học</div>
+          <% days.each do |d| %>
+            <div class="cell"><%= d[:label] %><div style="font-weight:500;color:#889;">(<%= (week_start + days.index(d)).strftime('%d/%m') %>)</div></div>
+          <% end %>
+        </div>
+
+        <% [['Sáng','morning'], ['Chiều','afternoon']].each do |label, key| %>
+          <div class="grid-row">
+            <div class="row-label"><%= label %></div>
+            <% days.each do |d| %>
+              <div class="cell">
+                <% (grid_map[d[:key]][key] || []).sort_by { |x| x.try(:start_time) || Time.parse('00:00') }.each do |c| %>
+                  <div class="course-block">
+                    <div class="course-title"><%= c.code %> - <%= truncate(c.name, length: 28) %>
+                      <span class="badge badge-blue"><%= key == 'morning' ? 'Sáng' : key == 'afternoon' ? 'Chiều' : 'Tối' %></span>
+                    </div>
+                    <div class="course-meta">
+                      ⏰ <%= c.try(:start_time)&.strftime('%H:%M') || '--:--' %> - <%= c.try(:end_time)&.strftime('%H:%M') || '--:--' %><br>
+                      📍 <%= c.room.presence || '—' %><br>
+                      👨‍🏫 <%= c.teacher_name.presence || '—' %>
+                    </div>
+                  </div>
+                <% end %>
+                <% if (grid_map[d[:key]][key] || []).empty? %>
+                  <div class="empty">—</div>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div style="text-align: center; padding: 40px; background: #f9f9f9; border-radius: 8px; border: 1px dashed #e6ecf1;">
+        <i class="far fa-calendar-alt" style="font-size: 50px; color: #c9d6ea;"></i>
+        <h3 style="color: #667; margin-top: 10px;">Chưa có lịch học trong tuần</h3>
+        <p style="color: #99a;">Bạn chưa đăng ký học phần hoặc các lớp chưa có lịch.</p>
+        <%= link_to "Đăng ký học phần →", student_courses_path, class: "btn", style: "margin-top: 10px;" %>
+      </div>
+    <% end %>
+  </div>
+
+  <%# Fallback list for courses without structured schedule fields %>
+  <% unplaced = (enrolled_courses || []).select { |c| c.try(:day_of_week).blank? } %>
+  <% if unplaced.any? %>
+    <div class="schedule-wrapper" style="border-top: 3px solid #ffe08a;">
+      <h3 style="margin: 0 0 10px; color: #8a6d3b;">Môn chưa sắp lịch</h3>
+      <% unplaced.each do |c| %>
+        <div class="course-block" style="background:#fff7e6;border-left-color:#ffb020;">
+          <div class="course-title" style="color:#8a6d3b;"><%= c.code %> - <%= c.name %></div>
+          <div class="course-meta" style="color:#8a6d3b;">
+            ⏰ <%= c.try(:schedule).presence || 'Chưa có giờ cụ thể' %><br>
+            📍 <%= c.room.presence || '—' %><br>
+            👨‍🏫 <%= c.teacher_name.presence || '—' %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>

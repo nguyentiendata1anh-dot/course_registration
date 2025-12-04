@@ -1,0 +1,150 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  body { margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f7f6; display: flex; height: 100vh; overflow: hidden; }
+  .sidebar { width: 250px; background: #fff; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; flex-shrink: 0; }
+  .logo-area { padding: 15px; text-align: center; border-bottom: 1px solid #eee; } 
+  .logo-area img { max-width: 180px; }
+  .menu { list-style: none; padding: 0; margin-top: 10px; }
+  .menu-link { display: flex; align-items: center; padding: 12px 20px; text-decoration: none; color: #555; font-size: 14px; font-weight: 500; border-bottom: 1px solid #f9f9f9; }
+  .menu-link:hover { color: #0056b3; background: #f0f8ff; }
+  .menu-link.active { background: #e8f4fd; color: #0056b3; font-weight: bold; border-left: 4px solid #0056b3; }
+  .menu-icon { width: 25px; color: #777; } 
+  .menu-link.active .menu-icon { color: #0056b3; }
+  .main-content { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
+  .reg-container { background: #fff; padding: 20px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  .data-table { width: 100%; border-collapse: collapse; font-size: 12px; color: #333; }
+  .data-table th { background-color: #f5fafd; color: #0067ac; border-top: 2px solid #0067ac; padding: 8px; }
+  .data-table td { padding: 8px; border: 1px solid #e1e1e1; text-align: center; }
+  .btn-reg { background: #007bff; color: white; border: none; padding: 4px 10px; border-radius: 3px; cursor: pointer; }
+  .btn-del { color: #dc3545; background: none; border: none; cursor: pointer; }
+</style>
+
+<div class="sidebar">
+  <div class="logo-area">
+    <%= image_tag "Logo-VNU-IS-2.jpg", alt: "IS Logo", loading: "lazy", style: "max-width: 180px;" %>
+  </div>
+  <ul class="menu">
+    <li><a href="<%= student_dashboard_path %>" class="menu-link"><i class="fas fa-home menu-icon"></i> TRANG CHỦ</a></li>
+    <li><a href="<%= student_profile_path %>" class="menu-link"><i class="fas fa-info-circle menu-icon"></i> THÔNG TIN CHUNG</a></li>
+    <li><a href="<%= student_courses_path %>" class="menu-link active"><i class="fas fa-edit menu-icon"></i> ĐĂNG KÝ HỌC PHẦN</a></li>
+    <li><a href="<%= student_results_path %>" class="menu-link"><i class="fas fa-book menu-icon"></i> KẾT QUẢ HỌC TẬP</a></li>
+  </ul>
+</div>
+
+<div class="main-content">
+  <div class="reg-container">
+    <h2 style="color:#555;">Đăng ký học phần</h2>
+
+    <div style="color:#0056b3; border-left:4px solid #0056b3; padding-left:8px; margin:20px 0 10px; font-weight:bold;">
+      | Lớp HP đã đăng ký
+    </div>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Xóa</th><th>Mã HP</th><th>Tên môn</th><th>TC</th><th>Học phí</th><th>Trạng thái</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- DÒNG DUY NHẤT TAO SỬA – CHỐNG LỖI NIL + SUM -->
+        <% total_credits = (@enrolled_courses || []).sum(&:credits) %>
+        <tr style="font-weight:bold;">
+          <td colspan="3">Tổng cộng</td>
+          <td><%= total_credits %></td>
+          <td><%= format_tuition(total_credits * tuition_per_credit) %></td>
+          <td></td>
+        </tr>
+
+        <% (@enrolled_courses || []).each do |course| %>
+          <tr>
+            <td>
+              <% enrollment = current_user.enrollments.find_by(course: course) %>
+              <% if enrollment %>
+                <% if course.expired? %>
+                  <% if enrollment.total_score.present? && enrollment.total_score < 5.5 %>
+                    <%= button_to raw('<i class="fas fa-trash"></i>'), course_enrollment_path(course, enrollment),
+                        method: :delete, form: { data: { turbo_confirm: 'Xóa để đăng ký lại?' } }, class: "btn-del", title: "Xóa để đăng ký lại" %>
+                  <% else %>
+                    <i class="fas fa-lock" style="color:#ccc;" title="Đã hết hạn hủy đăng ký"></i>
+                  <% end %>
+                <% else %>
+                  <%= button_to raw('<i class="fas fa-trash"></i>'), course_enrollment_path(course, enrollment),
+                      method: :delete, form: { data: { turbo_confirm: 'Hủy?' } }, class: "btn-del", title: "Hủy đăng ký" %>
+                <% end %>
+              <% end %>
+            </td>
+            <td><%= course.code %></td>
+            <td style="text-align:left;"><%= course.name %></td>
+            <td><%= course.credits %></td>
+            <td style="text-align:right;"><%= format_tuition(course.credits * tuition_per_credit) %></td>
+            <td style="color:green;">Đã ĐK</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <div style="color:#d9534f; border-left:4px solid #d9534f; padding-left:8px; margin:30px 0 10px; font-weight:bold;">
+      | Lớp HP đang mở
+    </div>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Đăng ký</th><th>Mã HP</th><th>Tên môn</th><th>TC</th><th>Lịch</th><th>Sĩ số</th><th>Chi tiết</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% (@available_courses || []).each do |course| %>
+          <% prereq_course = course.prerequisite.present? ? Course.find_by(code: course.prerequisite) : nil %>
+          <% has_prereq_passed = prereq_course && current_user.enrollments.find_by(course: prereq_course)&.passed? %>
+          <tr>
+            <td>
+              <% if course.deadline.present? && Time.current > course.deadline %>
+                <i class="fas fa-lock" style="color:#ccc;"></i>
+              <% elsif course.prerequisite.present? && !has_prereq_passed %>
+                <i class="fas fa-lock" style="color:#dc3545;" title="Chưa hoàn thành tiên quyết"></i>
+              <% else %>
+                <%= button_to "Đăng ký", course_enrollments_path(course), method: :post, class: "btn-reg" %>
+              <% end %>
+            </td>
+            <td style="font-weight:bold; color:<%= course.prerequisite.present? && !has_prereq_passed ? '#dc3545' : '#0056b3' %>;"><%= course.code %></td>
+            <td style="text-align:left; color:<%= course.prerequisite.present? && !has_prereq_passed ? '#dc3545' : '#333' %>;"><%= course.name %></td>
+            <td><%= course.credits %></td>
+            <td><%= course.schedule %></td>
+            <td><%= course.enrollments.count %>/<%= course.capacity %></td>
+            <td>
+              <button onclick="document.getElementById('m_<%= course.id %>').showModal()" style="border:none;background:none;color:#007bff;cursor:pointer;">
+                Xem
+              </button>
+              <dialog id="m_<%= course.id %>" style="border:none;border-radius:8px;padding:20px;box-shadow:0 10px 25px rgba(0,0,0,0.2); width: 400px;">
+                <h3 style="margin-top:0;"><%= course.name %></h3>
+                <p>Giáo viên: <%= course.teacher_name.presence || "Chưa có" %></p>
+                <p>Phòng: <%= course.room.presence || "Chưa có" %></p>
+                <p>Lịch: <%= course.schedule %></p>
+                <p>Hạn đăng ký: <%= course.registration_close_date.present? ? course.registration_close_date.strftime("%d/%m/%Y %H:%M") : "—" %></p>
+                <% if course.prerequisite.present? %>
+                  <p style="border-top:1px solid #eee; padding-top:10px; margin-top:10px;">
+                    <strong>Tiên quyết:</strong> 
+                    <% if prereq_course %>
+                      <%= prereq_course.code %> - <%= prereq_course.name %>
+                      <% if has_prereq_passed %>
+                        <span style="color:green;"> ✓ Đã hoàn thành</span>
+                      <% else %>
+                        <span style="color:red;"> ✗ Chưa hoàn thành</span>
+                      <% end %>
+                    <% else %>
+                      <span style="color:red;">Tiên quyết không hợp lệ</span>
+                    <% end %>
+                  </p>
+                <% end %>
+                <div style="text-align:right;">
+                  <button onclick="document.getElementById('m_<%= course.id %>').close()" style="margin-top:10px;">Đóng</button>
+                </div>
+              </dialog>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,143 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+  .admin-container { max-width: 1000px; margin: 0 auto; }
+  .admin-header { background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+  .admin-header h1 { margin: 0; font-size: 28px; color: #0078b4; }
+  .form-card { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+  .form-group { margin-bottom: 20px; }
+  .form-group label { display: block; font-weight: 600; color: #333; margin-bottom: 8px; font-size: 14px; }
+  .form-control, .form-select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 14px; font-family: inherit; }
+  .form-control:focus, .form-select:focus, textarea:focus { outline: none; border-color: #0078b4; box-shadow: 0 0 0 3px rgba(0,120,180,0.1); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+  .error-msg { background: #fff5f5; color: #c53030; padding: 15px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #c53030; }
+  .error-msg h3 { margin: 0 0 10px 0; font-size: 14px; }
+  .error-msg ul { margin: 0; padding-left: 20px; }
+  .btn-submit { background: #0078b4; color: white; border: none; padding: 14px 30px; cursor: pointer; font-weight: 600; border-radius: 6px; font-size: 16px; width: 100%; transition: all 0.2s ease; }
+  .btn-submit:hover { background: #005a8a; box-shadow: 0 4px 12px rgba(0,120,180,0.2); }
+  .back-link { text-align: center; margin-top: 20px; }
+  .back-link a { color: #0078b4; text-decoration: none; font-weight: 500; }
+  .back-link a:hover { text-decoration: underline; }
+</style>
+
+<div class="admin-container">
+  <div class="admin-header">
+    <h1>Tạo môn học mới</h1>
+    <%= link_to "← Quay lại", admin_root_path, style: "color:#0078b4; text-decoration:none; font-weight:500;" %>
+  </div>
+
+  <div class="form-card">
+    <%= form_with(model: @course, url: admin_courses_path, method: :post, local: true) do |form| %>
+      <% if @course.errors.any? %>
+        <div class="error-msg">
+          <h3><%= pluralize(@course.errors.count, "lỗi") %> khi tạo môn học:</h3>
+          <ul>
+            <% @course.errors.each do |error| %>
+              <li><%= error.full_message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <div class="form-row">
+        <div class="form-group">
+          <%= form.label :code, "Mã môn" %>
+          <%= form.text_field :code, class: "form-control", placeholder: "VD: CS101" %>
+        </div>
+        <div class="form-group">
+          <%= form.label :name, "Tên môn học" %>
+          <%= form.text_field :name, class: "form-control", placeholder: "Tên môn học..." %>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <%= form.label :term_id, "Kỳ học" %>
+          <%= form.collection_select :term_id, Term.all.order(start_date: :desc), :id, :name, { include_blank: "Chọn kỳ học" }, class: "form-select" %>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :teacher_name, "Giảng viên" %>
+        <%= form.text_field :teacher_name, class: "form-control", placeholder: "Tên giảng viên..." %>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <%= form.label :room, "Phòng học" %>
+          <%= form.text_field :room, class: "form-control", placeholder: "VD: A101" %>
+        </div>
+        <div class="form-group">
+          <%= form.label :schedule, "Ghi chú lịch" %>
+          <%= form.text_field :schedule, class: "form-control", placeholder: "Ghi chú..." %>
+        </div>
+      </div>
+
+      <div class="form-row three">
+        <div class="form-group">
+          <%= form.label :day_of_week, "Ngày học" %>
+          <%= form.select :day_of_week, 
+              { "Thứ 2" => "monday", "Thứ 3" => "tuesday", "Thứ 4" => "wednesday", 
+                "Thứ 5" => "thursday", "Thứ 6" => "friday", "Thứ 7" => "saturday", "Chủ nhật" => "sunday" },
+              { include_blank: "Chọn ngày..." },
+              class: "form-select" %>
+        </div>
+        <div class="form-group">
+          <%= form.label :start_time, "Giờ bắt đầu" %>
+          <%= form.time_field :start_time, class: "form-control" %>
+        </div>
+        <div class="form-group">
+          <%= form.label :end_time, "Giờ kết thúc" %>
+          <%= form.time_field :end_time, class: "form-control" %>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <%= form.label :credits, "Tín chỉ" %>
+          <%= form.number_field :credits, class: "form-control", placeholder: "3" %>
+        </div>
+        <div class="form-group">
+          <%= form.label :capacity, "Sĩ số tối đa" %>
+          <%= form.number_field :capacity, class: "form-control", placeholder: "40" %>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <%= form.label :start_date, "Ngày bắt đầu môn" %>
+          <%= form.date_field :start_date, class: "form-control" %>
+        </div>
+        <div class="form-group">
+          <%= form.label :end_date, "Ngày kết thúc môn" %>
+          <%= form.date_field :end_date, class: "form-control" %>
+        </div>
+      </div>
+      <div class="form-group" style="color:#555; font-size: 13px;">
+        Hạn đăng ký sẽ tự động = ngày bắt đầu + 7 ngày.
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <%= form.label :prerequisite, "Môn học tiên quyết" %>
+          <%= form.select :prerequisite, 
+            options_from_collection_for_select(Course.all, :code, :name),
+            { include_blank: "Không có tiên quyết" },
+            class: "form-select" %>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :description, "Mô tả chi tiết" %>
+        <%= form.text_area :description, rows: 4, class: "form-control", placeholder: "Nội dung chi tiết môn học..." %>
+      </div>
+
+      <%= form.submit "Tạo môn học", class: "btn-submit" %>
+    <% end %>
+  </div>
+
+  <div class="back-link">
+    <%= link_to "← Quay lại Dashboard", admin_root_path %>
+  </div>
+</div>

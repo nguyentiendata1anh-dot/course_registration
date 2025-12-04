@@ -1,0 +1,91 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  body { font-family: 'Segoe UI', sans-serif; background: #f4f6f9; display: flex; height: 100vh; margin: 0; }
+  .sidebar { width: 250px; background: #fff; border-right: 1px solid #ddd; display: flex; flex-direction: column; }
+  .logo-area { padding: 15px; text-align: center; border-bottom: 1px solid #eee; } 
+  .logo-area img { max-width: 180px; }
+  .menu { list-style: none; padding: 0; margin-top: 10px; }
+  .menu-link { display: flex; align-items: center; padding: 12px 20px; text-decoration: none; color: #555; font-size: 13px; border-bottom: 1px solid #f9f9f9; }
+  .menu-link:hover { color: #0056b3; background: #f0f8ff; }
+  .main-content { flex: 1; padding: 20px; overflow-y: auto; display: flex; justify-content: center; }
+  .form-card { background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); width: 100%; max-width: 600px; height: fit-content; }
+  .form-group { margin-bottom: 15px; }
+  .form-group label { display: block; font-weight: 600; color: #333; margin-bottom: 5px; }
+  .form-control { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px; }
+  .form-control:focus { outline: none; border-color: #007bff; box-shadow: 0 0 5px rgba(0,123,255,0.3); }
+  .btn-submit { background: #28a745; color: white; border: none; padding: 12px; width: 100%; cursor: pointer; font-weight: bold; border-radius: 4px; font-size: 16px; }
+  .btn-submit:hover { background: #218838; }
+  .error-msg { color: #dc3545; font-size: 12px; margin-top: 3px; }
+</style>
+
+<div class="sidebar">
+  <div class="logo-area">
+    <%= image_tag "Logo-VNU-IS-2.jpg", alt: "IS Logo", loading: "lazy" %>
+  </div>
+  <ul class="menu" style="flex: 1;">
+    <li><a href="<%= student_dashboard_path %>" class="menu-link"><i class="fas fa-home"></i> TRANG CHỦ</a></li>
+    <li><a href="<%= student_profile_path %>" class="menu-link"><i class="fas fa-info-circle"></i> THÔNG TIN CHUNG</a></li>
+  </ul>
+</div>
+
+<div class="main-content">
+  <div class="form-card">
+    <h2 style="color: #0056b3; text-align: center; margin-top: 0;"><i class="fas fa-pen"></i> Yêu cầu chỉnh sửa thông tin</h2>
+    
+    <% if @profile_request.errors.any? %>
+      <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+        <strong><%= pluralize(@profile_request.errors.count, "lỗi") %> khi lưu:</strong>
+        <ul style="margin: 10px 0 0;">
+          <% @profile_request.errors.each do |error| %>
+            <li><%= error.full_message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <%= form_with model: @profile_request, local: true, multipart: true do |f| %>
+      <div class="form-group">
+        <label><i class="fas fa-user-circle"></i> Họ và tên <span style="color: red;">*</span></label>
+        <%= f.text_field :full_name, class: "form-control", placeholder: "Nhập họ và tên", required: true %>
+        <% if @profile_request.errors[:full_name].any? %>
+          <div class="error-msg"><%= @profile_request.errors[:full_name].first %></div>
+        <% end %>
+      </div>
+
+      <div class="form-group">
+        <label><i class="fas fa-calendar"></i> Ngày sinh</label>
+        <%= f.date_field :dob, class: "form-control" %>
+      </div>
+
+      <div class="form-group">
+        <label><i class="fas fa-phone"></i> Số điện thoại</label>
+        <%= f.text_field :phone, class: "form-control", placeholder: "09xxxxxxxx" %>
+      </div>
+
+      <div class="form-group">
+        <label><i class="fas fa-map-marker-alt"></i> Địa chỉ</label>
+        <%= f.text_field :address, class: "form-control", placeholder: "Nhập địa chỉ" %>
+      </div>
+
+      <div class="form-group">
+        <label><i class="fas fa-image"></i> Ảnh đại diện</label>
+        <%= f.file_field :avatar, accept: 'image/*', class: "form-control" %>
+        <small style="color: #666;">Định dạng: JPG, PNG (tối đa 5MB)</small>
+      </div>
+
+      <div class="form-group">
+        <label><i class="fas fa-comment"></i> Lý do chỉnh sửa <span style="color: red;">*</span></label>
+        <%= f.text_area :reason, class: "form-control", rows: 4, placeholder: "Giải thích lý do muốn chỉnh sửa thông tin...", required: true %>
+        <% if @profile_request.errors[:reason].any? %>
+          <div class="error-msg"><%= @profile_request.errors[:reason].first %></div>
+        <% end %>
+      </div>
+
+      <%= f.submit "Gửi yêu cầu duyệt", class: "btn-submit" %>
+    <% end %>
+
+    <div style="text-align: center; margin-top: 15px;">
+      <%= link_to "← Quay lại hồ sơ", student_profile_path, style: "color: #6c757d; text-decoration: none;" %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,68 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+  .admin-container { max-width: 1000px; margin: 0 auto; }
+  .admin-header { background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+  .admin-header h1 { margin: 0; font-size: 28px; color: #0078b4; }
+  .btn-add { background: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: 500; }
+  .btn-add:hover { background: #218838; }
+  .table-card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table th { background: #f0f0f0; padding: 12px; text-align: left; color: #333; font-weight: 600; border-bottom: 2px solid #0078b4; }
+  .data-table td { padding: 12px; border-bottom: 1px solid #e0e0e0; }
+  .data-table tr:hover { background: #f9f9f9; }
+  .btn-sm { padding: 6px 12px; margin-right: 5px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
+  .btn-edit { background: #007bff; color: white; text-decoration: none; }
+  .btn-edit:hover { background: #0056b3; }
+  .btn-del { background: #dc3545; color: white; }
+  .btn-del:hover { background: #c82333; }
+  .empty-msg { text-align: center; color: #999; padding: 40px; }
+  .back-link { margin-top: 20px; text-align: center; }
+  .back-link a { color: #0078b4; text-decoration: none; font-weight: 500; }
+</style>
+
+<div class="admin-container">
+  <div class="admin-header">
+    <h1>Quản lý Kỳ học</h1>
+    <%= link_to "Thêm kỳ học mới", new_admin_term_path, class: "btn-add" %>
+  </div>
+
+  <div class="table-card">
+    <% if @terms.any? %>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Tên kỳ học</th>
+            <th>Ngày bắt đầu</th>
+            <th>Ngày kết thúc</th>
+            <th>Số môn học</th>
+            <th>Hành động</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @terms.each do |term| %>
+            <tr>
+              <td><strong><%= term.name %></strong></td>
+              <td><%= term.start_date&.strftime("%d/%m/%Y") || "—" %></td>
+              <td><%= term.end_date&.strftime("%d/%m/%Y") || "—" %></td>
+              <td><%= term.courses.count %></td>
+              <td>
+                <%= link_to "Sửa", edit_admin_term_path(term), class: "btn-sm btn-edit" %>
+                <%= link_to "Xóa", admin_term_path(term), class: "btn-sm btn-del",
+                    data: { turbo_method: :delete, turbo_confirm: "Bạn chắc chắn?" } %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <div class="empty-msg">
+        <p>Chưa có kỳ học nào. <%= link_to "Tạo kỳ học mới", new_admin_term_path %>.</p>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="back-link">
+    <%= link_to "← Quay lại Dashboard", admin_root_path %>
+  </div>
+</div>

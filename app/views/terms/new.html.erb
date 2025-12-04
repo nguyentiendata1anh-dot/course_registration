@@ -1,0 +1,60 @@
+<style>
+  body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+  .admin-container { max-width: 800px; margin: 0 auto; }
+  .admin-header { background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 30px; }
+  .admin-header h1 { margin: 0; font-size: 28px; color: #0078b4; }
+  .form-card { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+  .form-group { margin-bottom: 20px; }
+  .form-group label { display: block; font-weight: 600; color: #333; margin-bottom: 8px; font-size: 14px; }
+  .form-control { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+  .form-control:focus { outline: none; border-color: #0078b4; box-shadow: 0 0 0 3px rgba(0,120,180,0.1); }
+  .error-msg { background: #fff5f5; color: #c53030; padding: 15px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #c53030; }
+  .error-msg h3 { margin: 0 0 10px 0; font-size: 14px; }
+  .error-msg ul { margin: 0; padding-left: 20px; }
+  .btn-submit { background: #0078b4; color: white; border: none; padding: 14px 30px; cursor: pointer; font-weight: 600; border-radius: 6px; font-size: 16px; width: 100%; transition: all 0.2s ease; }
+  .btn-submit:hover { background: #005a8a; box-shadow: 0 4px 12px rgba(0,120,180,0.2); }
+  .back-link { text-align: center; margin-top: 20px; }
+  .back-link a { color: #0078b4; text-decoration: none; font-weight: 500; }
+</style>
+
+<div class="admin-container">
+  <div class="admin-header">
+    <h1>Tạo kỳ học mới</h1>
+  </div>
+
+  <div class="form-card">
+    <%= form_with(model: @term, url: admin_terms_path, method: :post, local: true) do |form| %>
+      <% if @term.errors.any? %>
+        <div class="error-msg">
+          <h3><%= pluralize(@term.errors.count, "lỗi") %> khi lưu kỳ học:</h3>
+          <ul>
+            <% @term.errors.each do |error| %>
+              <li><%= error.full_message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <div class="form-group">
+        <%= form.label :name, "Tên kỳ học" %>
+        <%= form.text_field :name, class: "form-control", placeholder: "VD: Fall 2025, Spring 2026" %>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :start_date, "Ngày bắt đầu" %>
+        <%= form.date_field :start_date, class: "form-control" %>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :end_date, "Ngày kết thúc" %>
+        <%= form.date_field :end_date, class: "form-control" %>
+      </div>
+
+      <%= form.submit "Tạo kỳ học", class: "btn-submit" %>
+    <% end %>
+
+    <div class="back-link">
+      <%= link_to "← Quay lại danh sách", admin_terms_path %>
+    </div>
+  </div>
+</div>

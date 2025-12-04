@@ -1,0 +1,143 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  body { font-family: 'Segoe UI', sans-serif; background-color: #f4f6f9; padding: 20px; }
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .title { color: #333; margin: 0; font-size: 22px; font-weight: 800; }
+  .btn-back { background: #6c757d; color: white; padding: 8px 15px; border-radius: 4px; text-decoration: none; }
+
+  .table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-radius: 8px; overflow: hidden; }
+  .table th { background: #007bff; color: white; padding: 12px; text-align: center; font-size: 13px; }
+  .table td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; font-size: 13px; }
+  .table td.left { text-align: left; }
+  .table-wrapper { overflow-x: auto; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+  .scores-table input { padding: 8px; border: 1px solid #ddd; border-radius: 4px; width: 100%; }
+  .btn { background: #fff; border: 1px solid #d4dce6; color: #334; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; display: inline-block; text-decoration: none; }
+  .btn:hover { background: #f6f9ff; border-color: #a8c8ff; }
+
+  .alert { padding: 12px; border-radius: 6px; margin-bottom: 12px; }
+  .alert-success { background:#d4edda; color:#155724; }
+  .alert-danger { background:#f8d7da; color:#721c24; }
+</style>
+
+<div class="header">
+  <div class="title">CẬP NHẬT ĐIỂM</div>
+  <%= link_to "← Về admin", admin_root_path, class: "btn-back" %>
+</div>
+
+<% if notice %>
+  <div class="alert alert-success">✅ <%= notice %></div>
+<% end %>
+<% if alert %>
+  <div class="alert alert-danger">❌ <%= alert %></div>
+<% end %>
+
+<% if defined?(@students) && @students.present? %>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th style="width:60px;">STT</th>
+          <th>Họ tên</th>
+          <th>Email</th>
+          <th style="width:120px;">MSSV</th>
+          <th style="width:100px;">Số môn</th>
+          <th style="width:160px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @students.each_with_index do |stu, idx| %>
+          <tr>
+            <td><strong><%= idx + 1 %></strong></td>
+            <td class="left"><%= stu.full_name.presence || stu.email.split('@').first %></td>
+            <td class="left"><%= stu.email %></td>
+            <td><%= stu.student_id.presence || 'N/A' %></td>
+            <td><%= stu.enrollments.count %></td>
+            <td><%= link_to 'Xem & chấm điểm →', admin_scores_path(user_id: stu.id), class: 'btn' %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+<% elsif defined?(@user) && @user.present? %>
+  <div class="header" style="margin-top: 8px;">
+    <div class="title" style="font-size:18px;">Sinh viên: <%= @user.full_name.presence || @user.email.split('@').first %> (<%= @user.student_id.presence || 'N/A' %>)</div>
+    <%= link_to '← Danh sách sinh viên', admin_scores_path, class: 'btn' %>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="table scores-table">
+      <thead>
+        <tr>
+          <th style="width:60px;">STT</th>
+          <th style="width:90px;">Mã HP</th>
+          <th class="left" style="min-width:220px;">Tên học phần</th>
+          <th style="width:70px;">TC</th>
+          <th style="width:130px;">Chuyên cần (20%)</th>
+          <th style="width:130px;">Giữa kỳ (20%)</th>
+          <th style="width:130px;">Cuối kỳ (60%)</th>
+          <th style="width:90px;">Tổng điểm</th>
+          <th style="width:70px;">Chữ</th>
+          <th style="width:90px;">Kết quả</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @enrollments.each_with_index do |enrollment, index| %>
+          <% c = enrollment.course %>
+          <% total = enrollment.total_score %>
+          <% letter = if total.nil?
+  nil
+elsif total >= 9.0
+  'A+'
+elsif total >= 8.5
+  'A'
+elsif total >= 8.0
+  'B+'
+elsif total >= 7.0
+  'B'
+elsif total >= 6.5
+  'C+'
+elsif total >= 5.5
+  'C'
+elsif total >= 5.0
+  'D+'
+elsif total >= 4.0
+  'D'
+else
+  'F'
+end %>
+          <tr>
+            <td><strong><%= index + 1 %></strong></td>
+            <td><strong><%= c.code %></strong></td>
+            <td class="left"><%= c.name %></td>
+            <td><%= c.credits %></td>
+            <td>
+              <%= form_with model: enrollment, url: admin_score_path(enrollment), method: :patch, local: true, style: 'display:inline;' do |f| %>
+                <%= f.number_field :attendance_score, step: 0.1, min: 0, max: 10, value: enrollment.attendance_score, placeholder: '0-10' %>
+              <% end %>
+            </td>
+            <td>
+              <%= form_with model: enrollment, url: admin_score_path(enrollment), method: :patch, local: true, style: 'display:inline;' do |f| %>
+                <%= f.number_field :midterm_exam_score, step: 0.1, min: 0, max: 10, value: enrollment.midterm_exam_score, placeholder: '0-10' %>
+              <% end %>
+            </td>
+            <td>
+              <%= form_with model: enrollment, url: admin_score_path(enrollment), method: :patch, local: true, style: 'display:inline;' do |f| %>
+                <%= f.number_field :final_exam_score, step: 0.1, min: 0, max: 10, value: enrollment.final_exam_score, placeholder: '0-10' %>
+              <% end %>
+            </td>
+            <td><strong><%= total&.round(2) || '-' %></strong></td>
+            <td><%= letter || '--' %></td>
+            <td><%= (letter == 'F') ? 'Trượt' : (total.present? ? 'Đạt' : 'Chưa có') %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+<% else %>
+  <div class="table-wrapper">
+    <div style="padding: 20px;">Không có dữ liệu.</div>
+  </div>
+<% end %>
