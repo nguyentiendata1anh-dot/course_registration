@@ -73,50 +73,30 @@
     <button class="btn" onclick="window.print()"><i class="fas fa-print"></i> In/Export</button>
   </div>
 
-  <% @enrollments = current_user.enrollments.includes(:course) %>
   <% if @enrollments.present? %>
-    <%# GPA and credits summary (10-point, weighted by credits) %>
-    <% earned_points10 = 0.0; earned_credits = 0; failed_credits = 0; counted_credits = 0 %>
-    <% @enrollments.each do |e| %>
-      <% if e.total_score.present? && e.course %>
-        <% credits = e.course.credits.to_i %>
-        <% counted_credits += credits %>
-        <% earned_points10 += e.total_score.to_f * credits %>
-        <% if e.passed? %>
-          <% earned_credits += e.completed_credits.to_i %>
-        <% else %>
-          <% failed_credits += credits %>
-        <% end %>
-      <% end %>
-    <% end %>
-    <% gpa = counted_credits > 0 ? (earned_points10 / counted_credits) : 0.0 %>
-
     <div class="summary">
       <div class="card">
         <h4>GPA (10.0)</h4>
-        <div class="value"><%= number_with_precision(gpa, precision: 2) %></div>
-        <div class="muted">Tổng tín chỉ tính GPA: <%= counted_credits %></div>
+        <div class="value"><%= number_with_precision(@gpa, precision: 2) %></div>
+        <div class="muted">Tổng tín chỉ tính GPA: <%= @counted_credits %></div>
       </div>
       <div class="card">
         <h4>Tín chỉ tích lũy</h4>
-        <div class="value"><%= earned_credits %></div>
+        <div class="value"><%= @earned_credits %></div>
         <div class="muted">Đã hoàn thành</div>
       </div>
       <div class="card">
         <h4>Tín chỉ trượt</h4>
-        <div class="value" style="color:#dc3545;"><%= failed_credits %></div>
+        <div class="value" style="color:#dc3545;"><%= @failed_credits %></div>
         <div class="muted">Cần học lại</div>
       </div>
     </div>
 
-    <%# Persistent failed attempts moved to top for visibility %>
-    <% failed_attempts = @enrollments.select { |e| e.total_score.present? && e.total_score < 4.0 } %>
-    <% failed_credits_total = failed_attempts.sum { |e| e.course&.credits.to_i } %>
-
+    <%# Hiển thị tổng tín chỉ đã từng trượt (tính từ controller) %>
     <div class="summary" style="margin-top: 0;">
       <div class="card">
         <h4>Đã từng trượt (tích lũy)</h4>
-        <div class="value" style="color:#dc3545;"><%= failed_credits_total %> tín chỉ</div>
+        <div class="value" style="color:#dc3545;"><%= @accumulated_failed_credits %> tín chỉ</div>
         <div class="muted">Tổng tín đã từng trượt, không giảm khi học lại</div>
       </div>
     </div>
@@ -134,8 +114,8 @@
           </tr>
         </thead>
         <tbody>
-          <% if failed_attempts.any? %>
-            <% failed_attempts.each_with_index do |e, idx| %>
+          <% if @accumulated_failed_enrollments.any? %>
+            <% @accumulated_failed_enrollments.each_with_index do |e, idx| %>
               <% c = e.course %>
               <% total = e.total_score %>
               <% letter = if total.nil?
@@ -215,7 +195,7 @@ end %>
                 <% end %>
               </td>
               <td>
-                <% v = enrollment.midterm_exam_score %>
+                <% v = enrollment.midterm_score %>
                 <% if v.present? %>
                   <div class="progress"><div class="bar bar-cyan" style="width:<%= (v.to_f * 10).clamp(0,100) %>%"></div></div>
                   <div class="muted"><%= number_with_precision(v, precision: 1) %></div>
@@ -224,7 +204,7 @@ end %>
                 <% end %>
               </td>
               <td>
-                <% v = enrollment.final_exam_score %>
+                <% v = enrollment.final_score %>
                 <% if v.present? %>
                   <div class="progress"><div class="bar bar-violet" style="width:<%= (v.to_f * 10).clamp(0,100) %>%"></div></div>
                   <div class="muted"><%= number_with_precision(v, precision: 1) %></div>
@@ -234,33 +214,11 @@ end %>
               </td>
               <td><strong><%= enrollment.total_score.present? ? number_with_precision(enrollment.total_score, precision: 2) : '--' %></strong></td>
               <td>
-                <% total = enrollment.total_score %>
-                <% letter = if total.nil?
-  nil
-elsif total >= 9.0
-  'A+'
-elsif total >= 8.5
-  'A'
-elsif total >= 8.0
-  'B+'
-elsif total >= 7.0
-  'B'
-elsif total >= 6.5
-  'C+'
-elsif total >= 5.5
-  'C'
-elsif total >= 5.0
-  'D+'
-elsif total >= 4.0
-  'D'
-else
-  'F'
-end %>
-                <%= letter || '--' %>
+                <%= enrollment.letter_grade || '--' %>
               </td>
               <td>
-                <% if enrollment.total_score.present? && enrollment.total_score > 0 %>
-                  <%= enrollment.passed? ? 'Đạt' : 'Trượt' %>
+                <% if enrollment.total_score.present? %>
+                  <span class="<%= enrollment.passed? ? 'status-ok' : 'status-fail' %>"><%= enrollment.passed? ? 'Đạt' : 'Trượt' %></span>
                 <% else %>
                   Chưa có
                 <% end %>

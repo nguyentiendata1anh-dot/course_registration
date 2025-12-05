@@ -23,6 +23,6 @@ class ScoresController < ApplicationController
   private
   
   def score_params
-    params.require(:enrollment).permit(:attendance_score, :midterm_exam_score, :final_exam_score)
+    params.require(:enrollment).permit(:attendance_score, :midterm_score, :final_score)
   end
 end

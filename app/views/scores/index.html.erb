@@ -85,28 +85,6 @@
       <tbody>
         <% @enrollments.each_with_index do |enrollment, index| %>
           <% c = enrollment.course %>
-          <% total = enrollment.total_score %>
-          <% letter = if total.nil?
-  nil
-elsif total >= 9.0
-  'A+'
-elsif total >= 8.5
-  'A'
-elsif total >= 8.0
-  'B+'
-elsif total >= 7.0
-  'B'
-elsif total >= 6.5
-  'C+'
-elsif total >= 5.5
-  'C'
-elsif total >= 5.0
-  'D+'
-elsif total >= 4.0
-  'D'
-else
-  'F'
-end %>
           <tr>
             <td><strong><%= index + 1 %></strong></td>
             <td><strong><%= c.code %></strong></td>
@@ -119,17 +97,24 @@ end %>
             </td>
             <td>
               <%= form_with model: enrollment, url: admin_score_path(enrollment), method: :patch, local: true, style: 'display:inline;' do |f| %>
-                <%= f.number_field :midterm_exam_score, step: 0.1, min: 0, max: 10, value: enrollment.midterm_exam_score, placeholder: '0-10' %>
+                <%= f.number_field :midterm_score, step: 0.1, min: 0, max: 10, value: enrollment.midterm_score, placeholder: '0-10' %>
               <% end %>
             </td>
             <td>
               <%= form_with model: enrollment, url: admin_score_path(enrollment), method: :patch, local: true, style: 'display:inline;' do |f| %>
-                <%= f.number_field :final_exam_score, step: 0.1, min: 0, max: 10, value: enrollment.final_exam_score, placeholder: '0-10' %>
+                <%= f.number_field :final_score, step: 0.1, min: 0, max: 10, value: enrollment.final_score, placeholder: '0-10' %>
               <% end %>
             </td>
-            <td><strong><%= total&.round(2) || '-' %></strong></td>
-            <td><%= letter || '--' %></td>
-            <td><%= (letter == 'F') ? 'Trượt' : (total.present? ? 'Đạt' : 'Chưa có') %></td>
+            <td><strong><%= enrollment.total_score&.round(2) || '-' %></strong></td>
+            <td><%= enrollment.letter_grade || '--' %></td>
+            <td>
+              <%# Sử dụng phương thức passed? từ model Enrollment %>
+              <% if enrollment.total_score.present? %>
+                <span class="<%= enrollment.passed? ? 'status-ok' : 'status-fail' %>"><%= enrollment.passed? ? 'Đạt' : 'Trượt' %></span>
+              <% else %>
+                <span class="status-pending">Chưa có</span>
+              <% end %>
+            </td>
           </tr>
         <% end %>
       </tbody>

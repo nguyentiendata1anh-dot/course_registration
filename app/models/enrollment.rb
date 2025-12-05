@@ -1,73 +1,91 @@
 class Enrollment < ApplicationRecord
   belongs_to :user
-  belongs_to :course, optional: true
+  belongs_to :course
   belongs_to :section, optional: true
-  
-  # Validations
+
+  # --- ENUMS ---
+  enum :status, { active: 0, cancelled: 1 }
+
+  # --- VALIDATIONS ---
+  validates :attendance_score, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 10 }, allow_nil: true
+  validates :midterm_score, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 10 }, allow_nil: true
+  validates :final_score, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 10 }, allow_nil: true
   validate :unique_enrollment_for_user
+
+  # --- SCOPES ---
+  default_scope { where(status: :active) } # Mặc định chỉ lấy các đăng ký đang hoạt động
+  scope :with_cancelled, -> { unscope(where: :status) } # Lấy tất cả, bao gồm cả đã hủy
+
+  # --- CALLBACKS (Tự động tính điểm trước khi lưu) ---
+  before_save :calculate_all_grades
+
+  # --- PHƯƠNG THỨC HỖ TRỢ ---
   
-  # Track if this is a retake course
-  attr_accessor :is_retake
-  
-  # Tính điểm tổng kết theo công thức: Chuyên cần 20% + Thi giữa kỳ 20% + Thi cuối kỳ 60%
-  def calculate_total_score
-    return nil unless attendance_score.present? && midterm_exam_score.present? && final_exam_score.present?
-    
-    (attendance_score * 0.2 + midterm_exam_score * 0.2 + final_exam_score * 0.6).round(2)
-  end
-  
-  # Hook tự động tính điểm tổng kết khi save
-  before_save :auto_calculate_total_score
-  
-  def auto_calculate_total_score
-    self.total_score = calculate_total_score
-  end
-  
-  # Phương thức lấy điểm chữ
-  def letter_grade
-    total = total_score
-    return nil unless total
-    
-    case total
-    when 9.0..10.0 then 'A'
-    when 8.5..8.9 then 'A'
-    when 7.0..8.4 then 'B'
-    when 5.5..6.9 then 'C'
-    when 4.0..5.4 then 'D'
-    else 'F'
-    end
-  end
-  
-  # Phương thức kiểm tra đạt/không đạt (tối thiểu 4.0)
+  # Kiểm tra ĐẠT (Theo quy chế tín chỉ thường là >= 4.0 hệ 10 hoặc điểm D)
   def passed?
     total_score.present? && total_score >= 4.0
   end
-  
-  # Phương thức kiểm tra môn học này có phải học lại không (điểm F - < 4.0)
+
+  # Kiểm tra có phải học lại không (Trượt)
   def is_retake_course?
     total_score.present? && total_score < 4.0
   end
-  
-  # Phương thức trả về tín chỉ hoàn thành (chỉ tính nếu đạt)
+
+  # Tính số tín chỉ tích lũy (Nếu trượt thì = 0)
   def completed_credits
-    if passed?
-      (section.present? ? section.course.credits : course.credits)
-    else
-      0
-    end
+    passed? ? course.credits : 0
   end
 
   private
 
+  # Hàm tính toán trung tâm
+  def calculate_all_grades
+    # Chỉ tính khi CÓ ĐỦ 3 đầu điểm (Chuyên cần, Giữa kỳ, Cuối kỳ)
+    if attendance_score.present? && midterm_score.present? && final_score.present?
+      
+      # 1. Tính tổng kết hệ 10 (20% - 20% - 60%)
+      raw_total = (attendance_score * 0.2) + (midterm_score * 0.2) + (final_score * 0.6)
+      self.total_score = raw_total.round(1)
+
+      # 2. Quy đổi sang Điểm Chữ và Hệ 4 (Thang điểm chuẩn VNU)
+      if self.total_score >= 9.0
+        self.letter_grade = 'A+'
+      elsif self.total_score >= 8.5
+        self.letter_grade = 'A'
+        self.score_4 = 4.0
+      elsif self.total_score >= 8.0
+        self.letter_grade = 'B+'
+        self.score_4 = 3.5
+      elsif self.total_score >= 7.0
+        self.letter_grade = 'B'
+        self.score_4 = 3.0
+      elsif self.total_score >= 6.5
+        self.letter_grade = 'C+'
+        self.score_4 = 2.5
+      elsif self.total_score >= 5.5
+        self.letter_grade = 'C'
+        self.score_4 = 2.0
+      elsif self.total_score >= 5.0
+        self.letter_grade = 'D+'
+        self.score_4 = 1.5
+      elsif self.total_score >= 4.0
+        self.letter_grade = 'D'
+        self.score_4 = 1.0
+      else
+        self.letter_grade = 'F'
+        self.score_4 = 0.0
+      end
+    end
+  end
+
   def unique_enrollment_for_user
+    # Logic kiểm tra trùng môn/lớp
+    scope = Enrollment.where(user_id: user_id).where.not(id: id)
+
     if section_id.present?
-      if Enrollment.where(user_id: user_id, section_id: section_id).where.not(id: id).exists?
-        errors.add(:base, "đã đăng ký lớp này")
-      end
+      errors.add(:base, "Bạn đã đăng ký lớp này rồi") if scope.where(section_id: section_id).exists?
     elsif course_id.present?
-      if Enrollment.where(user_id: user_id, course_id: course_id).where.not(id: id).exists?
-        errors.add(:base, "đã đăng ký môn học này")
-      end
+      errors.add(:base, "Bạn đã đăng ký môn học này rồi") if scope.where(course_id: course_id).exists?
     end
   end
 end

@@ -1,8 +1,8 @@
 class Course < ApplicationRecord
   # Quan hệ
   has_many :enrollments, dependent: :destroy
-  has_many :users, through: :enrollments
   has_many :sections, dependent: :destroy
+  has_many :users, through: :enrollments
   belongs_to :term, optional: true
   
   # Enum cho ngày trong tuần

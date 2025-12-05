@@ -3,11 +3,12 @@ service: course_registration
 
 # Name of the container image (use your-user/app-name on external registries).
 image: course_registration
+# Ví dụ cho GitHub Container Registry: image: ghcr.io/TEN_GITHUB_CUA_BAN/course_registration
 
 # Deploy to these servers.
 servers:
   web:
-    - 192.168.0.1
+    - 123.45.67.89 # <-- THAY BẰNG IP SERVER CỦA BẠN
   # job:
   #   hosts:
   #     - 192.168.0.1
@@ -27,14 +28,14 @@ servers:
 # Where you keep your container images.
 registry:
   # Alternatives: hub.docker.com / registry.digitalocean.com / ghcr.io / ...
-  server: localhost:5555
+  server: ghcr.io # <-- THAY BẰNG REGISTRY CỦA BẠN (ví dụ: ghcr.io hoặc hub.docker.com)
 
   # Needed for authenticated registries.
-  # username: your-user
+  username: TEN_GITHUB_CUA_BAN # <-- THAY BẰNG USERNAME REGISTRY
 
   # Always use an access token rather than real password when possible.
-  # password:
-  #   - KAMAL_REGISTRY_PASSWORD
+  password:
+    - KAMAL_REGISTRY_PASSWORD # <-- Kamal sẽ đọc biến môi trường này
 
 # Inject ENV variables into containers (secrets come from .kamal/secrets).
 env:

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_12_04_120300) do
+ActiveRecord::Schema[8.1].define(version: 2025_12_04_160000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -69,14 +69,18 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_04_120300) do
     t.datetime "created_at", null: false
     t.float "final_exam_score"
     t.float "final_score"
+    t.string "letter_grade"
     t.float "midterm_exam_score"
     t.float "midterm_score"
+    t.float "score_4"
     t.integer "section_id"
+    t.integer "status", default: 0, null: false
     t.float "total_score"
     t.datetime "updated_at", null: false
     t.integer "user_id", null: false
     t.index ["course_id"], name: "index_enrollments_on_course_id"
     t.index ["section_id"], name: "index_enrollments_on_section_id"
+    t.index ["status"], name: "index_enrollments_on_status"
     t.index ["user_id"], name: "index_enrollments_on_user_id"
   end
 

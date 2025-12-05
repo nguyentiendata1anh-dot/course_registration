@@ -1,27 +1,36 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
   body { margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f7f6; display: flex; height: 100vh; overflow: hidden; }
+  
+  /* SIDEBAR */
   .sidebar { width: 250px; background: #fff; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; flex-shrink: 0; }
   .logo-area { padding: 15px; text-align: center; border-bottom: 1px solid #eee; } 
-  .logo-area img { max-width: 180px; }
+  .logo-area img { max-width: 180px; height: auto; }
   .menu { list-style: none; padding: 0; margin-top: 10px; }
   .menu-link { display: flex; align-items: center; padding: 12px 20px; text-decoration: none; color: #555; font-size: 14px; font-weight: 500; border-bottom: 1px solid #f9f9f9; }
   .menu-link:hover { color: #0056b3; background: #f0f8ff; }
   .menu-link.active { background: #e8f4fd; color: #0056b3; font-weight: bold; border-left: 4px solid #0056b3; }
-  .menu-icon { width: 25px; color: #777; } 
-  .menu-link.active .menu-icon { color: #0056b3; }
+  .menu-icon { width: 25px; color: #777; } .menu-link.active .menu-icon { color: #0056b3; }
+  
+  /* MAIN CONTENT */
   .main-content { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
   .reg-container { background: #fff; padding: 20px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  
+  /* TABLE STYLES */
   .data-table { width: 100%; border-collapse: collapse; font-size: 12px; color: #333; }
-  .data-table th { background-color: #f5fafd; color: #0067ac; border-top: 2px solid #0067ac; padding: 8px; }
-  .data-table td { padding: 8px; border: 1px solid #e1e1e1; text-align: center; }
-  .btn-reg { background: #007bff; color: white; border: none; padding: 4px 10px; border-radius: 3px; cursor: pointer; }
-  .btn-del { color: #dc3545; background: none; border: none; cursor: pointer; }
+  .data-table th { background-color: #f5fafd; color: #0067ac; border-top: 2px solid #0067ac; padding: 8px; border: 1px solid #e1e1e1; text-align: center;}
+  .data-table td { padding: 8px; border: 1px solid #e1e1e1; text-align: center; vertical-align: middle; }
+  
+  /* BUTTONS & ALERTS */
+  .btn-reg { background: #007bff; color: white; border: none; padding: 5px 12px; border-radius: 3px; cursor: pointer; font-weight: bold; }
+  .btn-del { color: #dc3545; background: none; border: none; cursor: pointer; font-size: 14px; }
+  .prereq-alert { color: #dc3545 !important; font-weight: bold; }
+  .conflict-alert { color: #fd7e14 !important; font-weight: bold; }
 </style>
 
 <div class="sidebar">
   <div class="logo-area">
-    <%= image_tag "Logo-VNU-IS-2.jpg", alt: "IS Logo", loading: "lazy", style: "max-width: 180px;" %>
+    <%= image_tag "Logo-VNU-IS-2.jpg", alt: "IS Logo" %>
   </div>
   <ul class="menu">
     <li><a href="<%= student_dashboard_path %>" class="menu-link"><i class="fas fa-home menu-icon"></i> TRANG CHỦ</a></li>
@@ -32,10 +41,21 @@
 </div>
 
 <div class="main-content">
-  <div class="reg-container">
-    <h2 style="color:#555;">Đăng ký học phần</h2>
+  <% if alert %>
+    <div style="background:#f8d7da; color:#721c24; padding:10px; margin-bottom:15px; border-radius:4px; border:1px solid #f5c6cb;">
+      ⚠️ <%= alert %>
+    </div>
+  <% end %>
+  <% if notice %>
+    <div style="background:#d4edda; color:#155724; padding:10px; margin-bottom:15px; border-radius:4px; border:1px solid #c3e6cb;">
+      ✅ <%= notice %>
+    </div>
+  <% end %>
 
-    <div style="color:#0056b3; border-left:4px solid #0056b3; padding-left:8px; margin:20px 0 10px; font-weight:bold;">
+  <div class="reg-container">
+    <h2 style="color:#555; margin-top:0;">Đăng ký học phần</h2>
+
+    <div style="color:#0056b3; border-left:4px solid #0056b3; padding-left:8px; margin:20px 0 10px; font-weight:bold; font-size: 14px;">
       | Lớp HP đã đăng ký
     </div>
 
@@ -46,12 +66,11 @@
         </tr>
       </thead>
       <tbody>
-        <!-- DÒNG DUY NHẤT TAO SỬA – CHỐNG LỖI NIL + SUM -->
         <% total_credits = (@enrolled_courses || []).sum(&:credits) %>
-        <tr style="font-weight:bold;">
+        <tr style="font-weight:bold; background:#f9f9f9;">
           <td colspan="3">Tổng cộng</td>
           <td><%= total_credits %></td>
-          <td><%= format_tuition(total_credits * tuition_per_credit) %></td>
+          <td style="color:#d9534f; text-align: right;"><%= number_to_currency(total_credits * 1000000, unit: "", precision: 0) %> VNĐ</td>
           <td></td>
         </tr>
 
@@ -60,85 +79,130 @@
             <td>
               <% enrollment = current_user.enrollments.find_by(course: course) %>
               <% if enrollment %>
-                <% if course.expired? %>
-                  <% if enrollment.total_score.present? && enrollment.total_score < 5.5 %>
-                    <%= button_to raw('<i class="fas fa-trash"></i>'), course_enrollment_path(course, enrollment),
-                        method: :delete, form: { data: { turbo_confirm: 'Xóa để đăng ký lại?' } }, class: "btn-del", title: "Xóa để đăng ký lại" %>
-                  <% else %>
-                    <i class="fas fa-lock" style="color:#ccc;" title="Đã hết hạn hủy đăng ký"></i>
-                  <% end %>
-                <% else %>
-                  <%= button_to raw('<i class="fas fa-trash"></i>'), course_enrollment_path(course, enrollment),
-                      method: :delete, form: { data: { turbo_confirm: 'Hủy?' } }, class: "btn-del", title: "Hủy đăng ký" %>
-                <% end %>
+                 <%= button_to raw('<i class="fas fa-trash-alt"></i>'), course_enrollment_path(course, enrollment),
+                     method: :delete, form: { data: { turbo_confirm: 'Bạn có chắc muốn hủy môn này?' } }, class: "btn-del", title: "Hủy đăng ký" %>
               <% end %>
             </td>
             <td><%= course.code %></td>
             <td style="text-align:left;"><%= course.name %></td>
             <td><%= course.credits %></td>
-            <td style="text-align:right;"><%= format_tuition(course.credits * tuition_per_credit) %></td>
+            <td style="text-align:right;"><%= number_to_currency(course.credits * 1000000, unit: "", precision: 0) %></td>
             <td style="color:green;">Đã ĐK</td>
           </tr>
         <% end %>
       </tbody>
     </table>
 
-    <div style="color:#d9534f; border-left:4px solid #d9534f; padding-left:8px; margin:30px 0 10px; font-weight:bold;">
-      | Lớp HP đang mở
+    <div style="color:#d9534f; border-left:4px solid #d9534f; padding-left:8px; margin:30px 0 10px; font-weight:bold; font-size: 14px;">
+      | Lớp HP đang mở đăng ký
     </div>
 
     <table class="data-table">
       <thead>
         <tr>
-          <th>Đăng ký</th><th>Mã HP</th><th>Tên môn</th><th>TC</th><th>Lịch</th><th>Sĩ số</th><th>Chi tiết</th>
+          <th>Đăng ký</th><th>Mã HP</th><th>Tên môn</th><th>TC</th><th>Lịch học</th><th>Sĩ số</th><th>Chi tiết</th>
         </tr>
       </thead>
       <tbody>
         <% (@available_courses || []).each do |course| %>
-          <% prereq_course = course.prerequisite.present? ? Course.find_by(code: course.prerequisite) : nil %>
-          <% has_prereq_passed = prereq_course && current_user.enrollments.find_by(course: prereq_course)&.passed? %>
+          <% 
+             # 1. Logic kiểm tra Tiên quyết
+             has_prereq = course.prerequisite.present?
+             
+             # 2. Logic kiểm tra Trùng lịch (SỬ DỤNG 3 BIẾN MỚI)
+             conflict_msg = nil
+             
+             # Chỉ kiểm tra nếu môn đang mở có đủ dữ liệu lịch
+             if course.respond_to?(:day_of_week) && course.day_of_week.present? && course.start_time.present? && course.end_time.present?
+                
+                @enrolled_courses.each do |ec|
+                  # Chỉ so sánh nếu môn đã đăng ký cũng có đủ dữ liệu lịch
+                  if ec.respond_to?(:day_of_week) && ec.day_of_week.present? && ec.start_time.present? && ec.end_time.present?
+                    
+                    # LOGIC: Cùng Thứ VÀ Thời gian chồng lấn
+                    if course.day_of_week == ec.day_of_week && (course.start_time < ec.end_time) && (course.end_time > ec.start_time)
+                       time_str = "#{ec.start_time.strftime('%H:%M')} - #{ec.end_time.strftime('%H:%M')}"
+                       conflict_msg = "Trùng #{ec.code} (#{time_str})"
+                       break 
+                    end
+                  end
+                end
+             end
+          %>
           <tr>
             <td>
               <% if course.deadline.present? && Time.current > course.deadline %>
-                <i class="fas fa-lock" style="color:#ccc;"></i>
-              <% elsif course.prerequisite.present? && !has_prereq_passed %>
-                <i class="fas fa-lock" style="color:#dc3545;" title="Chưa hoàn thành tiên quyết"></i>
+                <i class="fas fa-lock" style="color:#ccc;" title="Hết hạn đăng ký"></i>
+              <% elsif conflict_msg %>
+                <i class="fas fa-exclamation-triangle conflict-alert" title="<%= conflict_msg %>" style="color:#fd7e14; font-size:16px;"></i>
               <% else %>
                 <%= button_to "Đăng ký", course_enrollments_path(course), method: :post, class: "btn-reg" %>
               <% end %>
             </td>
-            <td style="font-weight:bold; color:<%= course.prerequisite.present? && !has_prereq_passed ? '#dc3545' : '#0056b3' %>;"><%= course.code %></td>
-            <td style="text-align:left; color:<%= course.prerequisite.present? && !has_prereq_passed ? '#dc3545' : '#333' %>;"><%= course.name %></td>
+            
+            <td class="<%= 'prereq-alert' if has_prereq %>" style="<%= 'font-weight:bold; color:#0056b3;' unless has_prereq %>">
+              <%= course.code %>
+            </td>
+
+            <td style="text-align:left;" class="<%= 'prereq-alert' if has_prereq %>">
+              <%= course.name %>
+              
+              <% if has_prereq %>
+                <div style="font-size:10px; color:red; font-weight:normal;">(Yêu cầu: <%= course.prerequisite %>)</div>
+              <% end %>
+              
+              <% if conflict_msg %>
+                <div style="font-size:10px; color:#fd7e14; font-weight:bold;">⚠️ <%= conflict_msg %></div>
+              <% end %>
+            </td>
+
             <td><%= course.credits %></td>
-            <td><%= course.schedule %></td>
+            <td>
+              <% if course.respond_to?(:day_of_week) && course.day_of_week.present? && course.start_time.present? %>
+                Thứ <%= course.day_of_week %> (<%= course.start_time.strftime('%H:%M') %>-<%= course.end_time.strftime('%H:%M') %>)
+              <% else %>
+                <%= course.schedule %>
+              <% end %>
+            </td>
             <td><%= course.enrollments.count %>/<%= course.capacity %></td>
+            
             <td>
               <button onclick="document.getElementById('m_<%= course.id %>').showModal()" style="border:none;background:none;color:#007bff;cursor:pointer;">
-                Xem
+                <i class="fas fa-info-circle"></i> Xem
               </button>
-              <dialog id="m_<%= course.id %>" style="border:none;border-radius:8px;padding:20px;box-shadow:0 10px 25px rgba(0,0,0,0.2); width: 400px;">
-                <h3 style="margin-top:0;"><%= course.name %></h3>
-                <p>Giáo viên: <%= course.teacher_name.presence || "Chưa có" %></p>
-                <p>Phòng: <%= course.room.presence || "Chưa có" %></p>
-                <p>Lịch: <%= course.schedule %></p>
-                <p>Hạn đăng ký: <%= course.registration_close_date.present? ? course.registration_close_date.strftime("%d/%m/%Y %H:%M") : "—" %></p>
-                <% if course.prerequisite.present? %>
-                  <p style="border-top:1px solid #eee; padding-top:10px; margin-top:10px;">
-                    <strong>Tiên quyết:</strong> 
-                    <% if prereq_course %>
-                      <%= prereq_course.code %> - <%= prereq_course.name %>
-                      <% if has_prereq_passed %>
-                        <span style="color:green;"> ✓ Đã hoàn thành</span>
-                      <% else %>
-                        <span style="color:red;"> ✗ Chưa hoàn thành</span>
-                      <% end %>
+              
+              <dialog id="m_<%= course.id %>" style="border:none; border-radius:8px; padding:0; box-shadow:0 10px 25px rgba(0,0,0,0.2); width: 450px; text-align: left;">
+                <div style="background: #0056b3; color: white; padding: 10px 15px; font-weight: bold; border-radius: 8px 8px 0 0;">
+                  Thông tin học phần
+                </div>
+                <div style="padding: 20px;">
+                  <h3 style="margin-top:0; color:#333; margin-bottom: 15px;"><%= course.name %></h3>
+                  <p><strong>Mã môn:</strong> <%= course.code %></p>
+                  <p><strong>Giáo viên:</strong> <%= course.teacher_name.presence || "Chưa phân công" %></p>
+                  <p><strong>Phòng học:</strong> <%= course.room.presence || "Chưa xếp" %></p>
+                  <p><strong>Lịch học:</strong> 
+                    <% if course.respond_to?(:day_of_week) && course.day_of_week.present? %>
+                      Thứ <%= course.day_of_week %> (<%= course.start_time.strftime('%H:%M') %> - <%= course.end_time.strftime('%H:%M') %>)
                     <% else %>
-                      <span style="color:red;">Tiên quyết không hợp lệ</span>
+                      <%= course.schedule %>
                     <% end %>
                   </p>
-                <% end %>
-                <div style="text-align:right;">
-                  <button onclick="document.getElementById('m_<%= course.id %>').close()" style="margin-top:10px;">Đóng</button>
+                  <p><strong>Hạn đăng ký:</strong> <%= course.deadline.present? ? course.deadline.strftime("%H:%M %d/%m/%Y") : "Không giới hạn" %></p>
+                  
+                  <div style="background:#f9f9f9; padding:10px; border-radius:4px; margin-top:10px; font-size:13px; border: 1px solid #eee;">
+                    <p style="margin:5px 0;"><strong> Mô tả:</strong> <%= course.description.presence || "..." %></p>
+                    <p style="margin:5px 0; border-top:1px dashed #ddd; padding-top:5px;">
+                      <strong> Tiên quyết:</strong> 
+                      <% if has_prereq %>
+                        <span style="color:red; font-weight:bold;"><%= course.prerequisite %></span>
+                      <% else %>
+                        <span style="color:green;">Không yêu cầu</span>
+                      <% end %>
+                    </p>
+                  </div>
+                </div>
+                <div style="text-align:right; padding: 10px 20px 20px; border-top:1px solid #eee;">
+                  <button onclick="document.getElementById('m_<%= course.id %>').close()" style="padding:6px 15px; cursor:pointer; background: #6c757d; color: white; border: none; border-radius: 4px;">Đóng</button>
                 </div>
               </dialog>
             </td>

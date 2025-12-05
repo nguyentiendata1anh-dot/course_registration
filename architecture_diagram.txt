@@ -1,0 +1,42 @@
+Course Registration System - Architecture Diagram (MVC Pattern)
+
++-------------------+     +-------------------+     +-------------------+
+|   Presentation    |     |   Application     |     |   Data Layer      |
+|   Layer (Views)   |     |   Layer (MVC)     |     |   (Models)        |
++-------------------+     +-------------------+     +-------------------+
+|                   |     |                   |     |                   |
+| - ERB Templates   |     | - Controllers     |     | - User Model      |
+| - Layouts         |     |   (Courses,       |     | - Course Model    |
+| - Partials        |     |    Enrollments,   |     | - Enrollment Model|
+| - Helpers         |     |    Users)         |     | - Term Model      |
+|                   |     |                   |     | - Section Model   |
++-------------------+     +-------------------+     +-------------------+
+          |                           |                           |
+          |                           |                           |
+          v                           v                           v
++-------------------+     +-------------------+     +-------------------+
+|   Web Server      |     |   Rails Framework |     |   Database        |
+|   (Puma/Nginx)    |     |   (Ruby on Rails) |     |   (PostgreSQL)    |
++-------------------+     +-------------------+     +-------------------+
+          |                           |                           |
+          |                           |                           |
+          v                           v                           v
++-------------------+     +-------------------+     +-------------------+
+|   Client Browser  |     |   HTTP Requests   |     |   Active Record   |
+|   (HTML/CSS/JS)   |     |   (RESTful)       |     |   ORM             |
++-------------------+     +-------------------+     +-------------------+
+
+Key Components:
+- User Authentication: Devise gem for login/signup
+- Authorization: Role-based (Student/Admin)
+- Routing: RESTful routes defined in config/routes.rb
+- Database: Relational database with migrations
+- External Interfaces: Email notifications, file uploads (Active Storage)
+
+Data Flow:
+1. User sends HTTP request to Rails app
+2. Routes direct to appropriate controller action
+3. Controller interacts with models for business logic
+4. Models query/update database via Active Record
+5. Controller renders appropriate view template
+6. View is sent back as HTML response to user

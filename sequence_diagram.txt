@@ -1,0 +1,63 @@
+Course Registration System - Sequence Diagram: Student Course Enrollment
+
++---------+     +----------------+     +-------------+     +-------------+
+| Student |     | CoursesController|     | Enrollment  |     | Course Model|
+| Browser |     | (create action) |     | Controller  |     |             |
++---------+     +----------------+     +-------------+     +-------------+
+     |                   |                   |                   |
+     | 1. POST /courses/:id/enrollments      |                   |
+     |------------------>|                   |                   |
+     |                   | 2. authenticate_user!                |
+     |                   |------------------>|                   |
+     |                   | 3. set_course_or_section             |
+     |                   |------------------>|                   |
+     |                   | 4. Check if user has F grade         |
+     |                   |------------------>|                   |
+     |                   | 5. Check registration deadline       |
+     |                   |------------------>|                   |
+     |                   | 6. Check course capacity             |
+     |                   |------------------>|                   |
+     |                   | 7. Check duplicate enrollment        |
+     |                   |------------------>|                   |
+     |                   | 8. Check schedule conflicts          |
+     |                   |------------------>|                   |
+     |                   | 9. Check prerequisites               |
+     |                   |------------------>|                   |
+     |                   | 10. Create enrollment record         |
+     |                   |------------------>|                   |
+     |                   | 11. enrollment.save()                |
+     |                   |------------------>|                   |
+     |                   | 12. Success: redirect to student_courses|
+     |<------------------|                   |                   |
+     |                   | 13. Failure: redirect with alert     |
+     |<------------------|                   |                   |
+
+Detailed Sequence for Enrollment Creation:
+
+Student Browser -> CoursesController#create:
+- Authenticate user
+- Set course/section from params
+- Validate enrollment conditions:
+  * No F grades blocking registration
+  * Registration not expired
+  * Course has capacity
+  * Not already enrolled
+  * No schedule conflicts
+  * Prerequisites met (if any)
+- Create new Enrollment record
+- Save to database
+- Redirect with success/failure message
+
+Key Validation Steps:
+1. User Authentication: Ensures logged-in user
+2. F Grade Check: Prevents registration if user has failing grades
+3. Deadline Check: Verifies registration period is open
+4. Capacity Check: Ensures course isn't full
+5. Duplicate Check: Prevents double enrollment
+6. Schedule Conflict: Checks for time overlaps with existing enrollments
+7. Prerequisite Check: Verifies required courses are passed
+8. Record Creation: Inserts new enrollment into database
+
+Error Handling:
+- Each validation failure redirects back with specific error message
+- Successful enrollment redirects to student's course list with success notice

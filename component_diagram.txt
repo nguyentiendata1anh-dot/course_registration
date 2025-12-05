@@ -1,0 +1,80 @@
+Course Registration System - Component Diagram
+
++---------------------+     +---------------------+     +--------------------+
+|   User Interface    |     |   Business Logic    |     |   Data Access      |
+|   Components        |     |   Components        |     |   Components       |
++---------------------+     +---------------------+     +--------------------+
+|                     |     |                     |     |                    |
+| - Login/Signup      |     | - Authentication    |     | - User Repository  |
+|   (Devise)          |     |   (Devise)          |     | - Course Repository|
+| - Course List       |     | - Enrollment        |     | - Enrollment Repo  |
+| - Student Dashboard |     |   Business Rules    |     | - Profile Repo     |
+| - Admin Panel       |     | - Grade Calculation |     | - Term Repository  |
+| - Gradebook         |     | - Schedule Conflict |     |                    |
+|                     |     |   Detection         |     |                    |
++---------------------+     +---------------------+     +--------------------+
+          |                           |                           |
+          v                           v                           v
++---------------------+     +---------------------+     +---------------------+
+|   Controllers       |     |   Models            |     |   Database          |
+|   Layer             |     |   Layer             |     |   Layer             |
++---------------------+     +---------------------+     +---------------------+
+|                     |     |                     |     |                     |
+| - ApplicationCtrl   |     | - User Model        |     | - SQLite3           |
+| - CoursesCtrl       |     | - Course Model      |     | - Tables:           |
+| - EnrollmentsCtrl   |     | - Enrollment Model  |     |   users, courses,   |
+| - UsersCtrl         |     | - ProfileRequest    |     |   enrollments,      |
+| - ScoresCtrl        |     | - Reminder Model    |     |   terms, sections   |
+|                     |     | - Term Model        |     |                     |
++---------------------+     +---------------------+     +---------------------+
+          |                           |                           |
+          v                           v                           v
++---------------------+     +---------------------+     +---------------------+
+|   Views Layer       |     |   Helpers/Utilities |     |   External          |
+|                     |     |                     |     |   Services          |
++---------------------+     +---------------------+     +---------------------+
+|                     |     |                     |     |                     |
+| - ERB Templates     |     | - ApplicationHelper |     | - Email Service     |
+| - Layouts           |     | - CoursesHelper     |     |   (ActionMailer)    |
+| - Partials          |     | - UsersHelper       |     | - File Storage      |
+| - Admin Views       |     | - Date/Time Utils   |     |   (ActiveStorage)   |
+| - Student Views     |     |                     |     | - Background Jobs   |
+|                     |     |                     |     |   (ActiveJob)       |
++---------------------+     +---------------------+     +---------------------+
+
+Component Interactions:
+
+1. User Interface Components:
+   - Login/Signup: Handles user authentication via Devise
+   - Course List: Displays available courses with enrollment options
+   - Student Dashboard: Shows enrolled courses, GPA, credits
+   - Admin Panel: Manages users, courses, grades
+   - Gradebook: Interface for entering student scores
+
+2. Business Logic Components:
+   - Authentication: Manages user sessions and roles
+   - Enrollment Rules: Validates prerequisites, capacity, conflicts
+   - Grade Calculation: Computes GPA, letter grades from scores
+   - Schedule Conflict Detection: Checks for time overlaps
+
+3. Data Access Components:
+   - Repositories: Encapsulate database queries for each model
+   - User Repository: Handles user profile, roles, enrollments
+   - Course Repository: Manages course details, sections, terms
+   - Enrollment Repository: Tracks student registrations and grades
+
+4. Infrastructure Components:
+   - Controllers: Route requests, coordinate between UI and business logic
+   - Models: Represent data entities with validations and associations
+   - Database: Persistent storage with relational integrity
+   - Views: Render HTML responses using ERB templates
+   - Helpers: Provide reusable view logic and formatting
+   - External Services: Handle emails, file uploads, background processing
+
+Key Relationships:
+- Controllers depend on Models for data operations
+- Models use Database for persistence
+- Views depend on Controllers for data and Helpers for formatting
+- Business Logic components are used by Controllers
+- Data Access components are used by Models and Controllers
+- External Services are triggered by Controllers and Models
